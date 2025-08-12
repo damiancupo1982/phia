@@ -198,7 +198,7 @@ function App() {
               © 2024 Phia Rental Miami Management System
             </p>
             <p className="text-gray-400 text-sm mt-2">
-              Desarrollado con ❤️ para Phia Rental Miami 🚗🌴
+              Desarrollado x Damian con ❤️ para Phia Rental Miami 🚗🌴
             </p>
           </div>
         </div>
