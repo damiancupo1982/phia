@@ -869,120 +869,126 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" />
-      {/* Mensaje de éxito */}
-      {showSuccessMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
-          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-          {showSuccessMessage}
-        </div>
-      )}
+              Compartir por WhatsApp
+            </button>
+          </div>
+        )}
 
-      {/* Template PDF (oculto) */}
-      <div 
-        ref={budgetRef} 
-        data-budget-template
-        className="fixed -top-[9999px] left-0 opacity-0 pointer-events-none"
-        style={{ zIndex: -1 }}
-      >
-        <div className="w-[210mm] min-h-[297mm] p-8 bg-white font-sans" style={{ fontFamily: "'Segoe UI', 'Poppins', sans-serif", minWidth: '210mm' }}>
-          {/* Header */}
-          <div className="text-center mb-8">
-            {companyLogo && (
-              <div className="mb-6">
-                <img src={companyLogo} alt="Phia Rental Miami" className="max-h-16 mx-auto object-contain" />
+        {/* Mensaje de éxito */}
+        {showSuccessMessage && (
+          <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            {showSuccessMessage}
+          </div>
+        )}
+
+        {/* Template PDF (oculto) */}
+        <div 
+          ref={budgetRef} 
+          data-budget-template
+          className="fixed -top-[9999px] left-0 opacity-0 pointer-events-none"
+          style={{ zIndex: -1 }}
+        >
+          <div className="w-[210mm] min-h-[297mm] p-8 bg-white font-sans" style={{ fontFamily: "'Segoe UI', 'Poppins', sans-serif", minWidth: '210mm' }}>
+            {/* Header */}
+            <div className="text-center mb-8">
+              {companyLogo && (
+                <div className="mb-6">
+                  <img src={companyLogo} alt="Phia Rental Miami" className="max-h-16 mx-auto object-contain" />
+                </div>
+              )}
+              <div className="bg-gradient-to-r from-pink-500 to-orange-500 text-white p-4 rounded-lg mb-6">
+                <h1 className="text-2xl font-bold mb-1">PHIA RENTAL MIAMI</h1>
+                <h2 className="text-lg font-semibold">PRESUPUESTO DE RENTA DE AUTOS</h2>
+                <p className="text-sm mt-2">Reserva: {formData.reservationNumber}</p>
+              </div>
+            </div>
+
+            {/* Client Info */}
+            <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <div className="grid grid-cols-1 gap-3 text-lg">
+                <div className="flex items-center">
+                  <span className="font-bold text-gray-700 w-24">Cliente:</span>
+                  <span className="text-gray-900">{formData.clientName}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="font-bold text-gray-700 w-24">Período:</span>
+                  <span className="text-gray-900">{formData.startDate} al {formData.endDate}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="font-bold text-gray-700 w-24">Días:</span>
+                  <span className="text-gray-900 font-bold text-pink-600">{days} días</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Cars Table */}
+            {selectedCarsData.length > 0 && (
+              <div className="mb-8">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
+                    <th className="border border-gray-300 px-4 py-3 text-left font-bold">Tipo</th>
+                    <th className="border border-gray-300 px-4 py-3 text-left font-bold">Vehículo</th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-bold">Precio/Día</th>
+                    <th className="border border-gray-300 px-4 py-3 text-right font-bold">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedCarsData
+                    .sort((a, b) => a.pricePerDay - b.pricePerDay)
+                    .map((item, index) => {
+                    const carTotal = item.pricePerDay * days;
+                    const vehicleName = item.carFuel ? `${item.carName} - ${item.carFuel}` : item.carName;
+                    return (
+                      <tr key={item.carId} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{item.carType || 'Auto'}</td>
+                        <td className="border border-gray-300 px-4 py-3 text-gray-900">{vehicleName}</td>
+                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">${item.pricePerDay.toFixed(2)}</td>
+                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">${carTotal.toFixed(2)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {selectedCarsData.length === 1 && (
+                  <tfoot>
+                    <tr className="bg-gradient-to-r from-pink-100 to-orange-100">
+                      <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">TOTAL GENERAL:</td>
+                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">${total.toFixed(2)}</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
               </div>
             )}
-            <div className="bg-gradient-to-r from-pink-500 to-orange-500 text-white p-4 rounded-lg mb-6">
-              <h1 className="text-2xl font-bold mb-1">PHIA RENTAL MIAMI</h1>
-              <h2 className="text-lg font-semibold">PRESUPUESTO DE RENTA DE AUTOS</h2>
-              <p className="text-sm mt-2">Reserva: {formData.reservationNumber}</p>
-            </div>
-          </div>
 
-          {/* Client Info */}
-          <div className="bg-gray-50 rounded-lg p-6 mb-6">
-            <div className="grid grid-cols-1 gap-3 text-lg">
-              <div className="flex items-center">
-                <span className="font-bold text-gray-700 w-24">Cliente:</span>
-                <span className="text-gray-900">{formData.clientName}</span>
+            {/* Legal Text */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 text-sm text-gray-800 leading-relaxed">
+              <div className="space-y-1 mb-4">
+                <p>✓ Conductores adicionales sin cargo</p>
+                <p>✓ Recepción de paquetería Sin Cargo</p>
+                <p>✓ Entrega en puerta de aeropuerto MIA BONIFICADA</p>
+                <p>✓ Devolución en Aeropuerto MIA BONIFICADA</p>
+                <p>• Peaje libre (opcional) 5 dol x día</p>
+                <p>• Wifi libre (opcional) 5 dol x día</p>
+                <p>-Deposito en garantia se hace con bloqueo de tarjeta de credito, se devuelve 7 dias despues de recibir el auto si no hay multas o infracciones y el Contrato se firma digital</p>
               </div>
-              <div className="flex items-center">
-                <span className="font-bold text-gray-700 w-24">Período:</span>
-                <span className="text-gray-900">{formData.startDate} al {formData.endDate}</span>
+              
+              <div className="border-t border-gray-300 pt-4 mb-4">
+                <p className="font-bold text-lg text-pink-600">PRECIO FINAL</p>
+                <p className="text-gray-700">(incluye seguro obligatorio y taxes)</p>
               </div>
-              <div className="flex items-center">
-                <span className="font-bold text-gray-700 w-24">Días:</span>
-                <span className="text-gray-900 font-bold text-pink-600">{days} días</span>
+              
+              <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded">
+                <p className="font-bold text-orange-800">SI LA ENTREGA O RECEPCIÓN ES FUERA DE HORARIO DE OFICINA SE DEBE ABONAR</p>
+                <p className="font-bold text-orange-800">EL TICKET DEL PARKING DEL AEROPUERTO.</p>
               </div>
             </div>
-          </div>
 
-          {/* Cars Table */}
-          {selectedCarsData.length > 0 && (
-            <div className="mb-8">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
-                  <th className="border border-gray-300 px-4 py-3 text-left font-bold">Tipo</th>
-                  <th className="border border-gray-300 px-4 py-3 text-left font-bold">Vehículo</th>
-                  <th className="border border-gray-300 px-4 py-3 text-right font-bold">Precio/Día</th>
-                  <th className="border border-gray-300 px-4 py-3 text-right font-bold">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {selectedCarsData
-                  .sort((a, b) => a.pricePerDay - b.pricePerDay)
-                  .map((item, index) => {
-                  const carTotal = item.pricePerDay * days;
-                  const vehicleName = item.carFuel ? `${item.carName} - ${item.carFuel}` : item.carName;
-                  return (
-                    <tr key={item.carId} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                      <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{item.carType || 'Auto'}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-gray-900">{vehicleName}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">${item.pricePerDay.toFixed(2)}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">${carTotal.toFixed(2)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              {selectedCarsData.length === 1 && (
-                <tfoot>
-                  <tr className="bg-gradient-to-r from-pink-100 to-orange-100">
-                    <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">TOTAL GENERAL:</td>
-                    <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">${total.toFixed(2)}</td>
-                  </tr>
-                </tfoot>
-              )}
-            </table>
+            {/* Footer */}
+            <div className="text-center mt-8 pt-4 border-t border-gray-200">
+              <p className="text-gray-600 text-sm">🌴 Phia Rental Miami - Tu mejor opción en Miami 🌴</p>
             </div>
-          )}
-
-          {/* Legal Text */}
-          <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 text-sm text-gray-800 leading-relaxed">
-            <div className="space-y-1 mb-4">
-              <p>✓ Conductores adicionales sin cargo</p>
-              <p>✓ Recepción de paquetería Sin Cargo</p>
-              <p>✓ Entrega en puerta de aeropuerto MIA BONIFICADA</p>
-              <p>✓ Devolución en Aeropuerto MIA BONIFICADA</p>
-              <p>• Peaje libre (opcional) 5 dol x día</p>
-              <p>• Wifi libre (opcional) 5 dol x día</p>
-              <p>-Deposito en garantia se hace con bloqueo de tarjeta de credito, se devuelve 7 dias despues de recibir el auto si no hay multas o infracciones y el Contrato se firma digital</p>
-            </div>
-            
-            <div className="border-t border-gray-300 pt-4 mb-4">
-              <p className="font-bold text-lg text-pink-600">PRECIO FINAL</p>
-              <p className="text-gray-700">(incluye seguro obligatorio y taxes)</p>
-            </div>
-            
-            <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded">
-              <p className="font-bold text-orange-800">SI LA ENTREGA O RECEPCIÓN ES FUERA DE HORARIO DE OFICINA SE DEBE ABONAR</p>
-              <p className="font-bold text-orange-800">EL TICKET DEL PARKING DEL AEROPUERTO.</p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center mt-8 pt-4 border-t border-gray-200">
-            <p className="text-gray-600 text-sm">🌴 Phia Rental Miami - Tu mejor opción en Miami 🌴</p>
           </div>
         </div>
       </div>
