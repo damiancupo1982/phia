@@ -869,12 +869,6 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" />
-              Compartir WhatsApp
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Mensaje de éxito */}
       {showSuccessMessage && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
