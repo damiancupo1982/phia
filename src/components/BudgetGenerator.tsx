@@ -16,13 +16,20 @@ interface Props {
   setReservationCounter: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudgets, companyLogo, lastClientName, setLastClientName, reservationCounter, setReservationCounter }: Props) {
+export default function BudgetGenerator({
+  cars, seasonSettings, budgets, setBudgets, companyLogo, lastClientName, setLastClientName, reservationCounter, setReservationCounter
+}: Props) {
   const [formData, setFormData] = useState({
     clientName: lastClientName,
     reservationNumber: `#${reservationCounter.toString().padStart(4, '0')}`,
     startDate: '',
     endDate: ''
   });
+
+  // NUEVO: días editables y flag si el usuario los tocó
+  const [durationDays, setDurationDays] = useState<number>(0);
+  const [durationEdited, setDurationEdited] = useState<boolean>(false);
+
   const [selectedCars, setSelectedCars] = useState<Map<string, BudgetItem>>(new Map());
   const budgetRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -53,18 +60,49 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     }
   }, [reservationCounter, formData.reservationNumber]);
 
-  // Filtrar autos según los criterios
+  // --------- Utilidades ---------
+  const isHighSeason = (startDate: string, endDate: string): boolean => {
+    if (!seasonSettings.highSeasonStart || !seasonSettings.highSeasonEnd) return false;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const highStart = new Date(seasonSettings.highSeasonStart);
+    const highEnd = new Date(seasonSettings.highSeasonEnd);
+    return (start >= highStart && start <= highEnd) || (end >= highStart && end <= highEnd);
+  };
+
+  const calculateDays = (startDate: string, endDate: string): number => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    // normalizo a medianoche para evitar parciales por hora
+    start.setHours(0,0,0,0);
+    end.setHours(0,0,0,0);
+    const diffTime = end.getTime() - start.getTime();
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, days);
+  };
+
+  // NUEVO: mantener "sugerido" en sync mientras no se haya editado
+  const suggestedDays = formData.startDate && formData.endDate
+    ? calculateDays(formData.startDate, formData.endDate)
+    : 0;
+
+  useEffect(() => {
+    if (!durationEdited) {
+      setDurationDays(suggestedDays);
+    }
+  }, [formData.startDate, formData.endDate, suggestedDays, durationEdited]);
+
+  // --------- Filtros ---------
   const filteredCars = cars.filter(car => {
     const matchesType = !filters.type || car.type?.toLowerCase().includes(filters.type.toLowerCase());
     const matchesFuel = !filters.fuel || car.fuel?.toLowerCase().includes(filters.fuel.toLowerCase());
     const matchesSeats = !filters.seats || (car.seats && car.seats.toString() === filters.seats);
     const matchesPrice = car.lowSeasonPrice >= filters.priceRange[0] && car.lowSeasonPrice <= filters.priceRange[1];
     const matchesSearch = !filters.searchTerm || car.name.toLowerCase().includes(filters.searchTerm.toLowerCase());
-    
     return matchesType && matchesFuel && matchesSeats && matchesPrice && matchesSearch;
   });
 
-  // Obtener valores únicos para los filtros
   const uniqueTypes = [...new Set(cars.map(car => car.type).filter(Boolean))];
   const uniqueFuels = [...new Set(cars.map(car => car.fuel).filter(Boolean))];
   const uniqueSeats = [...new Set(cars.map(car => car.seats).filter(Boolean))].sort((a, b) => a! - b!);
@@ -79,46 +117,29 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     });
   };
 
-  const isHighSeason = (startDate: string, endDate: string): boolean => {
-    if (!seasonSettings.highSeasonStart || !seasonSettings.highSeasonEnd) return false;
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const highStart = new Date(seasonSettings.highSeasonStart);
-    const highEnd = new Date(seasonSettings.highSeasonEnd);
-    
-    return (start >= highStart && start <= highEnd) || (end >= highStart && end <= highEnd);
-  };
-
-  const calculateDays = (startDate: string, endDate: string): number => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
-
+  // --------- Selección de autos ---------
   const toggleCarSelection = (carId: string) => {
     const newSelected = new Map(selectedCars);
     if (newSelected.has(carId)) {
       newSelected.delete(carId);
     } else {
       const car = cars.find(c => c.id === carId)!;
-      const season = formData.startDate && formData.endDate ? 
-        (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja') : 'baja';
+      const season = formData.startDate && formData.endDate
+        ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja')
+        : 'baja';
       const pricePerDay = season === 'alta' ? car.highSeasonPrice : car.lowSeasonPrice;
-      
+
       const budgetItem: BudgetItem = {
         carId,
         carName: car.name,
         carType: car.type || 'Auto',
         carFuel: car.fuel,
-        price: 0, // Se calculará después
+        price: 0, // se calcula después
         pricePerDay,
         originalPricePerDay: pricePerDay,
         season,
         manuallyEdited: false
       };
-      
       newSelected.set(carId, budgetItem);
     }
     setSelectedCars(newSelected);
@@ -139,41 +160,39 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     const newSelected = new Map(selectedCars);
     const item = newSelected.get(carId);
     const car = cars.find(c => c.id === carId);
-    
     if (item && car) {
       item.season = newSeason;
-      
-      // Solo actualizar el precio si no ha sido editado manualmente
       if (!item.manuallyEdited) {
         const newPrice = newSeason === 'alta' ? car.highSeasonPrice : car.lowSeasonPrice;
         item.pricePerDay = newPrice;
         item.originalPricePerDay = newPrice;
       }
-      
       newSelected.set(carId, item);
       setSelectedCars(newSelected);
     }
   };
 
+  // --------- Generación de presupuesto ---------
   const generateBudget = async () => {
     if (!formData.clientName || !formData.reservationNumber || !formData.startDate || !formData.endDate || selectedCars.size === 0) {
       alert('Por favor, completa todos los campos y selecciona al menos un auto.');
       return;
     }
+    if (durationDays <= 0) {
+      alert('La duración debe ser al menos 1 día.');
+      return;
+    }
 
     setIsGenerating(true);
-    const days = calculateDays(formData.startDate, formData.endDate);
-    
+
     const items: BudgetItem[] = Array.from(selectedCars.values()).map(item => {
       return {
         ...item,
-        price: item.pricePerDay * days
+        price: item.pricePerDay * durationDays
       };
     });
 
-    // Ordenar por precio de menor a mayor
     items.sort((a, b) => a.pricePerDay - b.pricePerDay);
-
     const total = items.reduce((sum, item) => sum + item.price, 0);
 
     const budget: Budget = {
@@ -185,37 +204,25 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       items,
       total,
       createdAt: new Date().toISOString(),
-      days
+      days: durationDays // usar los días editables
     };
 
-    // Esperar a que el DOM se actualice
     await new Promise(resolve => setTimeout(resolve, 100));
-    
     const { pdfBase64, imageBase64 } = await generatePDFAndImage(budget);
-    
-    // Agregar las imágenes al presupuesto
-    const budgetWithAssets = {
-      ...budget,
-      pdfBase64,
-      imageBase64
-    };
 
+    const budgetWithAssets = { ...budget, pdfBase64, imageBase64 };
     setBudgets(prev => [...prev, budgetWithAssets]);
     setIsGenerating(false);
 
-    // Incrementar contador de reservas
     setReservationCounter(prev => prev + 1);
 
-    // Limpiar formulario
+    // Limpiar formulario y volver a automático
     const nextReservationNumber = `#${(reservationCounter + 1).toString().padStart(4, '0')}`;
-    setFormData({ 
-      clientName: '', 
-      reservationNumber: nextReservationNumber, 
-      startDate: '', 
-      endDate: '' 
-    });
+    setFormData({ clientName: '', reservationNumber: nextReservationNumber, startDate: '', endDate: '' });
     setSelectedCars(new Map());
-    
+    setDurationDays(0);
+    setDurationEdited(false);
+
     showSuccess('Presupuesto generado exitosamente');
   };
 
@@ -223,22 +230,17 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     const element = budgetRef.current;
     if (!element) return { pdfBase64: '', imageBase64: '' };
 
-    // Temporarily show the element for rendering
     element.style.position = 'static';
     element.style.top = 'auto';
     element.style.left = 'auto';
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    
-    // Wait for rendering
     await new Promise(resolve => setTimeout(resolve, 100));
 
     let pdfBase64 = '';
     let imageBase64 = '';
-
     try {
-      // Generate image first
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
@@ -248,15 +250,13 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
         height: element.scrollHeight,
         logging: false
       });
-      
       imageBase64 = canvas.toDataURL('image/png');
 
-      // Generate PDF
       const opt = {
         margin: [10, 10, 10, 10],
         filename: `presupuesto-${budget.reservationNumber}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
+        html2canvas: {
           scale: 2,
           useCORS: true,
           allowTaint: true,
@@ -265,24 +265,16 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
           width: element.scrollWidth,
           height: element.scrollHeight
         },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait',
-          compress: true
-        }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
       };
 
       const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('datauristring');
       pdfBase64 = pdfBlob;
-
-      // Also save the PDF file
       await html2pdf().from(element).set(opt).save();
-      
+
     } catch (error) {
       console.error('Error generating PDF/Image:', error);
     } finally {
-      // Hide the element again
       element.style.position = 'fixed';
       element.style.top = '-9999px';
       element.style.left = '0';
@@ -299,26 +291,22 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       alert('Por favor, completa todos los campos y selecciona al menos un auto.');
       return;
     }
-
     const element = budgetRef.current;
     if (!element) return;
 
-    // Temporarily show the element for rendering
     element.style.position = 'static';
     element.style.top = 'auto';
     element.style.left = 'auto';
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    
-    // Wait for rendering
     await new Promise(resolve => setTimeout(resolve, 200));
 
     const opt = {
       margin: [10, 10, 10, 10],
       filename: `presupuesto-${formData.reservationNumber || 'phia-rental'}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
+      html2canvas: {
         scale: 2,
         useCORS: true,
         allowTaint: true,
@@ -327,12 +315,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
         width: element.scrollWidth,
         height: element.scrollHeight
       },
-      jsPDF: { 
-        unit: 'mm', 
-        format: 'a4', 
-        orientation: 'portrait',
-        compress: true
-      }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
     };
 
     try {
@@ -342,7 +325,6 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       console.error('Error generating PDF:', error);
       alert('Error al generar el PDF');
     } finally {
-      // Hide the element again
       element.style.position = 'fixed';
       element.style.top = '-9999px';
       element.style.left = '0';
@@ -357,19 +339,15 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       alert('Por favor, completa todos los campos y selecciona al menos un auto.');
       return;
     }
-
     const element = budgetRef.current;
     if (!element) return;
 
-    // Temporarily show the element for rendering
     element.style.position = 'static';
     element.style.top = 'auto';
     element.style.left = 'auto';
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    
-    // Wait for rendering
     await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
@@ -393,9 +371,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       canvas.toBlob(async (blob) => {
         if (blob && navigator.clipboard && navigator.clipboard.write) {
           try {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
             showSuccess('Imagen copiada al portapapeles');
           } catch (err) {
             console.error('Error copying to clipboard:', err);
@@ -409,7 +385,6 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       console.error('Error generating image:', error);
       alert('Error al generar la imagen');
     } finally {
-      // Hide the element again
       element.style.position = 'fixed';
       element.style.top = '-9999px';
       element.style.left = '0';
@@ -432,19 +407,15 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       alert('Por favor, completa todos los campos y selecciona al menos un auto.');
       return;
     }
-
     const element = budgetRef.current;
     if (!element) return;
 
-    // Temporarily show the element for rendering
     element.style.position = 'static';
     element.style.top = 'auto';
     element.style.left = 'auto';
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    
-    // Wait for rendering
     await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
@@ -466,30 +437,26 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
       });
 
       const imageData = canvas.toDataURL('image/png');
-      const days = calculateDays(formData.startDate, formData.endDate);
-      const message = `🚗 *Te envío el presupuesto de Phia Rental Miami* 🌴\n\n` +
-                     `Cliente: ${formData.clientName}\n` +
-                     `Período: ${formData.startDate} al ${formData.endDate}\n` +
-                     `Días: ${days} días\n\n` +
-                     `¡Consulta nuestras mejores ofertas para tu viaje a Miami!\n\n` +
-                     `(Ver imagen adjunta con detalles completos)`;
+      const message =
+        `🚗 *Te envío el presupuesto de Phia Rental Miami* 🌴\n\n` +
+        `Cliente: ${formData.clientName}\n` +
+        `Período: ${formData.startDate} al ${formData.endDate}\n` +
+        `Días: ${durationDays} días\n\n` +
+        `¡Consulta nuestras mejores ofertas para tu viaje a Miami!\n\n` +
+        `(Ver imagen adjunta con detalles completos)`;
 
-      // Crear un enlace temporal para descargar la imagen
       const link = document.createElement('a');
       link.download = `presupuesto-phia-${formData.reservationNumber}.png`;
       link.href = imageData;
       link.click();
 
-      // Abrir WhatsApp con el mensaje
       const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
-      
       showSuccess('Imagen descargada y WhatsApp abierto');
     } catch (error) {
       console.error('Error sharing to WhatsApp:', error);
       alert('Error al compartir por WhatsApp');
     } finally {
-      // Hide the element again
       element.style.position = 'fixed';
       element.style.top = '-9999px';
       element.style.left = '0';
@@ -504,10 +471,13 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     setTimeout(() => setShowSuccessMessage(null), 3000);
   };
 
-  const days = formData.startDate && formData.endDate ? calculateDays(formData.startDate, formData.endDate) : 0;
-  const season = formData.startDate && formData.endDate ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja') : null;
+  // Derivados para UI / totales (SIEMPRE usar durationDays)
+  const season = formData.startDate && formData.endDate
+    ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja')
+    : null;
+
   const selectedCarsData = Array.from(selectedCars.values());
-  const total = selectedCarsData.reduce((sum, item) => sum + (item.pricePerDay * days), 0);
+  const total = selectedCarsData.reduce((sum, item) => sum + (item.pricePerDay * Math.max(0, durationDays)), 0);
 
   return (
     <div className="space-y-8">
@@ -517,12 +487,10 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
           <FileText className="h-6 w-6 text-pink-600" />
           <h2 className="text-2xl font-bold text-gray-800">Generar Presupuesto</h2>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Nombre del Cliente
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Nombre del Cliente</label>
             <input
               type="text"
               value={formData.clientName}
@@ -532,9 +500,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Número de Reserva
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Número de Reserva</label>
             <input
               type="text"
               value={formData.reservationNumber}
@@ -544,45 +510,65 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             <p className="text-xs text-gray-500 mt-1">Número generado automáticamente</p>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Fecha de Inicio
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha de Inicio</label>
             <input
               type="date"
               value={formData.startDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+              onChange={(e) => { setFormData(prev => ({ ...prev, startDate: e.target.value })); }}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Fecha de Fin
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Fecha de Fin</label>
             <input
               type="date"
               value={formData.endDate}
-              onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+              onChange={(e) => { setFormData(prev => ({ ...prev, endDate: e.target.value })); }}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
             />
           </div>
         </div>
 
         {/* Información del Período */}
-        {days > 0 && (
+        {suggestedDays > 0 && (
           <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-4 mb-6 border border-pink-200">
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <Calculator className="h-4 w-4 text-pink-600" />
-                <span className="font-semibold text-gray-700">Duración:</span>
-                <span className="text-pink-700 font-bold">{days} días</span>
+                <span className="font-semibold text-gray-700">Duración (días):</span>
+                <input
+                  type="number"
+                  min={1}
+                  value={durationDays}
+                  onChange={(e) => {
+                    const v = Math.max(1, Number(e.target.value || 0));
+                    setDurationDays(v);
+                    setDurationEdited(true);
+                  }}
+                  className="w-24 px-2 py-1 border border-gray-300 rounded-md text-center"
+                  title="Editar días de alquiler"
+                />
+                {!durationEdited ? (
+                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">Automático</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setDurationEdited(false); setDurationDays(suggestedDays || 1); }}
+                    className="text-xs underline text-pink-700"
+                    title="Volver a usar el cálculo sugerido"
+                  >
+                    Usar sugerido ({suggestedDays})
+                  </button>
+                )}
               </div>
+
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-gray-700">Temporada:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                  season === 'alta' 
-                    ? 'bg-orange-100 text-orange-700' 
-                    : 'bg-emerald-100 text-emerald-700'
-                }`}>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    season === 'alta' ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'
+                  }`}
+                >
                   {season === 'alta' ? 'ALTA' : 'BAJA'}
                 </span>
               </div>
@@ -608,9 +594,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
                 {/* Búsqueda por nombre */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Buscar por nombre
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Buscar por nombre</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
@@ -625,9 +609,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
 
                 {/* Filtro por tipo */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Tipo de auto
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de auto</label>
                   <select
                     value={filters.type}
                     onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
@@ -642,9 +624,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
 
                 {/* Filtro por combustible */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Combustible
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Combustible</label>
                   <select
                     value={filters.fuel}
                     onChange={(e) => setFilters(prev => ({ ...prev, fuel: e.target.value }))}
@@ -659,9 +639,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
 
                 {/* Filtro por plazas */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Plazas
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Plazas</label>
                   <select
                     value={filters.seats}
                     onChange={(e) => setFilters(prev => ({ ...prev, seats: e.target.value }))}
@@ -676,9 +654,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
 
                 {/* Rango de precios */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Precio máximo: ${filters.priceRange[1]}
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Precio máximo: ${filters.priceRange[1]}</label>
                   <input
                     type="range"
                     min="0"
@@ -691,9 +667,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               </div>
 
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Mostrando {filteredCars.length} de {cars.length} autos
-                </div>
+                <div className="text-sm text-gray-600">Mostrando {filteredCars.length} de {cars.length} autos</div>
                 <button
                   onClick={clearFilters}
                   className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
@@ -712,14 +686,12 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             {filteredCars.map((car) => {
               const isSelected = selectedCars.has(car.id);
               const selectedItem = selectedCars.get(car.id);
-              
+
               return (
-                <div 
+                <div
                   key={car.id}
                   className={`p-6 rounded-lg border-2 transition-all ${
-                    isSelected
-                      ? 'border-pink-500 bg-pink-50 shadow-md'
-                      : 'border-gray-200 bg-white'
+                    isSelected ? 'border-pink-500 bg-pink-50 shadow-md' : 'border-gray-200 bg-white'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-4">
@@ -733,9 +705,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                       <div>
                         <h4 className="font-bold text-gray-900">{car.name}</h4>
                         <p className="text-sm text-gray-600">{car.type || 'Auto'}</p>
-                        {car.seats && (
-                          <p className="text-xs text-gray-500">{car.seats} plazas</p>
-                        )}
+                        {car.seats && (<p className="text-xs text-gray-500">{car.seats} plazas</p>)}
                       </div>
                     </div>
                   </div>
@@ -744,9 +714,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                     <div className="mt-4 space-y-4 border-t border-gray-200 pt-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Temporada
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Temporada</label>
                           <select
                             value={selectedItem.season}
                             onChange={(e) => updateCarSeason(car.id, e.target.value as 'alta' | 'baja')}
@@ -756,11 +724,9 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                             <option value="alta">Alta</option>
                           </select>
                         </div>
-                        
+
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Precio por día ($)
-                          </label>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">Precio por día ($)</label>
                           <input
                             type="number"
                             step="0.01"
@@ -769,19 +735,19 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                             className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
                           />
                         </div>
-                        
+
                         <div>
                           <label className="block text-sm font-semibold text-gray-700 mb-2">
-                            Total ({days} días)
+                            Total ({Math.max(0, durationDays)} días)
                           </label>
                           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
                             <span className="font-bold text-pink-700">
-                              ${(selectedItem.pricePerDay * days).toFixed(2)}
+                              ${(selectedItem.pricePerDay * Math.max(0, durationDays)).toFixed(2)}
                             </span>
                           </div>
                         </div>
                       </div>
-                      
+
                       {selectedItem.manuallyEdited && (
                         <div className="text-xs text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
                           ⚠️ Precio editado manualmente
@@ -801,7 +767,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               );
             })}
           </div>
-          
+
           {filteredCars.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               <p className="text-lg">No se encontraron autos con los filtros aplicados</p>
@@ -811,16 +777,16 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
         </div>
 
         {/* Resumen y Total */}
-        {selectedCars.size > 0 && days > 0 && (
+        {selectedCars.size > 0 && durationDays > 0 && (
           <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-6 mb-6 border border-pink-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Resumen del Presupuesto</h3>
             <div className="space-y-3">
               {selectedCarsData.map((item) => {
-                const carTotal = item.pricePerDay * days;
+                const carTotal = item.pricePerDay * Math.max(0, durationDays);
                 return (
                   <div key={item.carId} className="flex justify-between items-center text-sm">
                     <span className="text-gray-700">
-                      {item.carName} - {item.season === 'alta' ? 'Temp. Alta' : 'Temp. Baja'} ({days} días)
+                      {item.carName} - {item.season === 'alta' ? 'Temp. Alta' : 'Temp. Baja'} ({Math.max(0, durationDays)} días)
                     </span>
                     <span className="font-semibold text-gray-900">${carTotal.toFixed(2)}</span>
                   </div>
@@ -853,7 +819,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
           )}
         </button>
 
-        {/* Botones adicionales cuando hay datos */}
+        {/* Botones adicionales */}
         {formData.clientName && formData.reservationNumber && formData.startDate && formData.endDate && selectedCars.size > 0 && (
           <div className="flex flex-wrap gap-4 mt-4">
             <button
@@ -863,7 +829,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               <Copy className="h-4 w-4" />
               Copiar como Imagen
             </button>
-            
+
             <button
               onClick={shareWhatsApp}
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
@@ -883,13 +849,16 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
         )}
 
         {/* Template PDF (oculto) */}
-        <div 
-          ref={budgetRef} 
+        <div
+          ref={budgetRef}
           data-budget-template
           className="fixed -top-[9999px] left-0 opacity-0 pointer-events-none"
           style={{ zIndex: -1 }}
         >
-          <div className="w-[210mm] min-h-[297mm] p-8 bg-white font-sans" style={{ fontFamily: "'Segoe UI', 'Poppins', sans-serif", minWidth: '210mm' }}>
+          <div
+            className="w-[210mm] min-h-[297mm] p-8 bg-white font-sans"
+            style={{ fontFamily: "'Segoe UI', 'Poppins', sans-serif", minWidth: '210mm' }}
+          >
             {/* Header */}
             <div className="text-center mb-8">
               {companyLogo && (
@@ -917,7 +886,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                 </div>
                 <div className="flex items-center">
                   <span className="font-bold text-gray-700 w-24">Días:</span>
-                  <span className="text-gray-900 font-bold text-pink-600">{days} días</span>
+                  <span className="text-gray-900 font-bold text-pink-600">{Math.max(0, durationDays)} días</span>
                 </div>
               </div>
             </div>
@@ -925,40 +894,40 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             {/* Cars Table */}
             {selectedCarsData.length > 0 && (
               <div className="mb-8">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
-                    <th className="border border-gray-300 px-4 py-3 text-left font-bold">Tipo</th>
-                    <th className="border border-gray-300 px-4 py-3 text-left font-bold">Vehículo</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-bold">Precio/Día</th>
-                    <th className="border border-gray-300 px-4 py-3 text-right font-bold">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedCarsData
-                    .sort((a, b) => a.pricePerDay - b.pricePerDay)
-                    .map((item, index) => {
-                    const carTotal = item.pricePerDay * days;
-                    const vehicleName = item.carFuel ? `${item.carName} - ${item.carFuel}` : item.carName;
-                    return (
-                      <tr key={item.carId} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                        <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{item.carType || 'Auto'}</td>
-                        <td className="border border-gray-300 px-4 py-3 text-gray-900">{vehicleName}</td>
-                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">${item.pricePerDay.toFixed(2)}</td>
-                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">${carTotal.toFixed(2)}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                {selectedCarsData.length === 1 && (
-                  <tfoot>
-                    <tr className="bg-gradient-to-r from-pink-100 to-orange-100">
-                      <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">TOTAL GENERAL:</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">${total.toFixed(2)}</td>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
+                      <th className="border border-gray-300 px-4 py-3 text-left font-bold">Tipo</th>
+                      <th className="border border-gray-300 px-4 py-3 text-left font-bold">Vehículo</th>
+                      <th className="border border-gray-300 px-4 py-3 text-right font-bold">Precio/Día</th>
+                      <th className="border border-gray-300 px-4 py-3 text-right font-bold">Total</th>
                     </tr>
-                  </tfoot>
-                )}
-              </table>
+                  </thead>
+                  <tbody>
+                    {selectedCarsData
+                      .sort((a, b) => a.pricePerDay - b.pricePerDay)
+                      .map((item, index) => {
+                        const carTotal = item.pricePerDay * Math.max(0, durationDays);
+                        const vehicleName = item.carFuel ? `${item.carName} - ${item.carFuel}` : item.carName;
+                        return (
+                          <tr key={item.carId} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                            <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{item.carType || 'Auto'}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-gray-900">{vehicleName}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">${item.pricePerDay.toFixed(2)}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">${carTotal.toFixed(2)}</td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                  {selectedCarsData.length === 1 && (
+                    <tfoot>
+                      <tr className="bg-gradient-to-r from-pink-100 to-orange-100">
+                        <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">TOTAL GENERAL:</td>
+                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">${total.toFixed(2)}</td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
               </div>
             )}
 
@@ -973,12 +942,12 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                 <p>• Wifi libre (opcional) 5 dol x día</p>
                 <p>-Deposito en garantia se hace con bloqueo de tarjeta de credito, se devuelve 7 dias despues de recibir el auto si no hay multas o infracciones y el Contrato se firma digital</p>
               </div>
-              
+
               <div className="border-t border-gray-300 pt-4 mb-4">
                 <p className="font-bold text-lg text-pink-600">PRECIO FINAL</p>
                 <p className="text-gray-700">(incluye seguro obligatorio y taxes)</p>
               </div>
-              
+
               <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded">
                 <p className="font-bold text-orange-800">SI LA ENTREGA O RECEPCIÓN ES FUERA DE HORARIO DE OFICINA SE DEBE ABONAR</p>
                 <p className="font-bold text-orange-800">EL TICKET DEL PARKING DEL AEROPUERTO.</p>
