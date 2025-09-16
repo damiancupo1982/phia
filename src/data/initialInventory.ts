@@ -22,6 +22,7 @@ export const initialInventory = [
   { id: '21', name: 'Kia Carnival 2025', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 400, lowSeasonPrice: 95, highSeasonPrice: 112, seats: 8 },
   { id: '22', name: 'Ford Expedition 7 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 95, highSeasonPrice: 110, seats: 7 },
   { id: '23', name: 'Chevrolet Suburban 8 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 95, highSeasonPrice: 110, seats: 8 },
+  { id: '23', name: 'Toyota Highlander', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 85, highSeasonPrice: 95, seats: 7 },
   { id: '24', name: 'Chrysler Escalade 7 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 800, lowSeasonPrice: 199, highSeasonPrice: 210, seats: 7 },
   { id: '25', name: 'Pacifica 7 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 400, lowSeasonPrice: 85, highSeasonPrice: 95, seats: 5 },
   { id: '26', name: 'Jeep Grand Cherokee 5 plazas Gasolina', type: 'Suv Lux', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 92, highSeasonPrice: 112, seats: 5 },
