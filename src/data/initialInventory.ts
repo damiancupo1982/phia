@@ -23,7 +23,7 @@ export const initialInventory = [
   { id: '22', name: 'Ford Expedition 7 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 95, highSeasonPrice: 110, seats: 7 },
   { id: '23', name: 'Chevrolet Suburban 8 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 95, highSeasonPrice: 110, seats: 8 },
   { id: '24', name: 'Chrysler Escalade 7 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 800, lowSeasonPrice: 199, highSeasonPrice: 210, seats: 7 },
-  { id: '25', name: 'Pacifica 5 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 400, lowSeasonPrice: 85, highSeasonPrice: 95, seats: 5 },
+  { id: '25', name: 'Pacifica 7 asientos', type: 'Suv Familiar', fuel: 'Gasolina', deposit: 400, lowSeasonPrice: 85, highSeasonPrice: 95, seats: 5 },
   { id: '26', name: 'Jeep Grand Cherokee 5 plazas Gasolina', type: 'Suv Lux', fuel: 'Gasolina', deposit: 500, lowSeasonPrice: 92, highSeasonPrice: 112, seats: 5 },
   { id: '27', name: 'BMW X7 7 asientos', type: 'Suv Lux', fuel: 'Gasolina', deposit: 800, lowSeasonPrice: 180, highSeasonPrice: 220, seats: 7 },
   { id: '28', name: 'Porsche Boxter S Descapotable 2 asientos', type: 'Lux', fuel: 'Gasolina', deposit: 1000, lowSeasonPrice: 220, highSeasonPrice: 250, seats: 2 },
