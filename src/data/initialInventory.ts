@@ -1,6 +1,7 @@
 // src/data/initialInventory.ts
-// Inventario Phia Rental Miami actualizado según la lista “Whole Sale List of Price Phia 2025”.
-// Formato idéntico al archivo original.
+// Inventario Phia Rental Miami actualizado.
+// Mantiene el mismo formato y categorías existentes. Agregados: 5 autos de lujo,
+// Bote 2h, Bote 4h y Jet Ski. Los campos no provistos quedan en blanco ('')
 
 export const initialInventory = [
   // ECON
@@ -42,21 +43,21 @@ export const initialInventory = [
   { id: '22', name: 'Jeep Grand Cherokee (5 plazas)',  type: 'Suv Lux',     fuel: 'Gasolina',  deposit: 500, lowSeasonPrice: 92,  highSeasonPrice: 112, seats: 5 },
   { id: '23', name: 'BMW X7 (7 plazas)',               type: 'Suv Lux',     fuel: 'Gasolina',  deposit: 800, lowSeasonPrice: 180, highSeasonPrice: 210, seats: 7 },
 
-  // LUX (DEPORTIVOS / CABRIO)
+  // LUX (DEPORTIVOS / CABRIO) EXISTENTES
   { id: '24', name: 'Mustang Cabrio (5 asientos)',     type: 'Lux',         fuel: 'Gasolina',  deposit: 500, lowSeasonPrice: 75,  highSeasonPrice: 90,  seats: 5 },
   { id: '25', name: 'Porsche Boxter',                  type: 'Lux',         fuel: 'Gasolina',  deposit: 500, lowSeasonPrice: 220, highSeasonPrice: 250, seats: 2 },
 
-  // 🔥 NUEVOS AUTOS DE LUJO (5)
-  { id: '26', name: 'Lamborghini Huracán',             type: 'Lux',         fuel: '',          deposit: 1000, lowSeasonPrice: 500, highSeasonPrice: 500, seats: 2 },
-  { id: '27', name: 'Ferrari Portofino',               type: 'Lux',         fuel: '',          deposit: 1000, lowSeasonPrice: 550, highSeasonPrice: 550, seats: 2 },
-  { id: '28', name: 'Rolls Royce Cullinan',            type: 'Lux',         fuel: '',          deposit: 1200, lowSeasonPrice: 800, highSeasonPrice: 800, seats: 4 },
-  { id: '29', name: 'Bentley Continental GT',          type: 'Lux',         fuel: '',          deposit: 1000, lowSeasonPrice: 600, highSeasonPrice: 600, seats: 4 },
-  { id: '30', name: 'Maserati Levante',                type: 'Lux',         fuel: '',          deposit: 800,  lowSeasonPrice: 400, highSeasonPrice: 400, seats: 5 },
+  // 🔥 NUEVOS AUTOS DE LUJO (5) — precios iguales baja/alta, campos no provistos en blanco
+  { id: '26', name: 'Lamborghini Huracán',             type: 'Lux',         fuel: '', deposit: '', lowSeasonPrice: 500, highSeasonPrice: 500, seats: 2 },
+  { id: '27', name: 'Ferrari Portofino',               type: 'Lux',         fuel: '', deposit: '', lowSeasonPrice: 550, highSeasonPrice: 550, seats: 2 },
+  { id: '28', name: 'Rolls Royce Cullinan',            type: 'Lux',         fuel: '', deposit: '', lowSeasonPrice: 800, highSeasonPrice: 800, seats: 4 },
+  { id: '29', name: 'Bentley Continental GT',          type: 'Lux',         fuel: '', deposit: '', lowSeasonPrice: 600, highSeasonPrice: 600, seats: 4 },
+  { id: '30', name: 'Maserati Levante',                type: 'Lux',         fuel: '', deposit: '', lowSeasonPrice: 400, highSeasonPrice: 400, seats: 5 },
 
-  // 🚤 BOTES
-  { id: '31', name: 'Bote (2 horas)',                  type: 'Boat',        fuel: '',          deposit: 0,    lowSeasonPrice: 250, highSeasonPrice: 250 },
-  { id: '32', name: 'Bote (4 horas)',                  type: 'Boat',        fuel: '',          deposit: 0,    lowSeasonPrice: 450, highSeasonPrice: 450 },
+  // 🚤 BOTES — precios iguales baja/alta
+  { id: '31', name: 'Bote (2 horas)',                  type: 'Boat',        fuel: '', deposit: '', lowSeasonPrice: 250, highSeasonPrice: 250 },
+  { id: '32', name: 'Bote (4 horas)',                  type: 'Boat',        fuel: '', deposit: '', lowSeasonPrice: 450, highSeasonPrice: 450 },
 
-  // 🌊 JETSKI
-  { id: '33', name: 'Jet Ski (1 hora)',                type: 'JetSki',      fuel: '',          deposit: 0,    lowSeasonPrice: 180, highSeasonPrice: 180 }
+  // 🌊 JET SKI — precio igual baja/alta
+  { id: '33', name: 'Jet Ski (1 hora)',                type: 'JetSki',      fuel: '', deposit: '', lowSeasonPrice: 180, highSeasonPrice: 180 }
 ];
