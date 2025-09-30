@@ -956,7 +956,7 @@ export default function BudgetGenerator({
 
             {/* Footer */}
             <div className="text-center mt-8 pt-4 border-t border-gray-200">
-              <p className="text-gray-600 text-sm">🌴 Phia Rental Miami - Tu mejor opción en Miami 🌴</p>
+              <p className="text-gray-600 text-sm">🌴 Phia Rental Miami - Creado por Damian Cupo🌴</p>
             </div>
           </div>
         </div>
