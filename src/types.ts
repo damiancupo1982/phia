@@ -47,3 +47,13 @@ export interface CarFilters {
   priceRange: [number, number];
   searchTerm: string;
 }
+
+export interface GalleryItem {
+  id: string;
+  carId: string;
+  type: 'image' | 'video';
+  url: string;
+  name: string;
+  uploadedAt: string;
+  selected?: boolean;
+}
