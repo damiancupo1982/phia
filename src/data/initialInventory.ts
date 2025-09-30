@@ -58,5 +58,5 @@ export const initialInventory = [
   { id: '32', name: 'Bote (4 horas)',                  type: 'Boat',        fuel: 'Gasolina', deposit: 100, lowSeasonPrice: 450, highSeasonPrice: 450 },
 
   // 🌊 JET SKI — ahora con fuel "Gasolina" y deposit 100
-  { id: '33', name: 'Jet Ski (1 hora)',                type: 'JetSki',      fuel: 'Gasolina', deposit: 100, lowSeasonPrice: 180, highSeasonPrice: 180 }
+  { id: '33', name: 'Jet Ski (2 horas con guia)',                type: 'JetSki',      fuel: 'Gasolina', deposit: 100, lowSeasonPrice: 350, highSeasonPrice: 350 }
 ];
