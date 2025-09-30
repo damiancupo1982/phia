@@ -88,8 +88,8 @@ export default function BudgetGenerator({
   const maxLowPrice = useMemo(
     () =>
       normalizedCars.length
-        ? Math.max(...normalizedCars.map((c) => c.lowSeasonPrice || 0), 300)
-        : 300,
+        ? Math.max(...normalizedCars.map((c) => c.lowSeasonPrice || 0), 900)
+        : 900,
     [normalizedCars]
   );
 
