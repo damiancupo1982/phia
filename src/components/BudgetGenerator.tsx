@@ -107,7 +107,6 @@ export default function BudgetGenerator({
   const [selectedCars, setSelectedCars] = useState<Map<string, BudgetItem>>(new Map());
   const budgetRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<CarFilters>({
     type: '',
@@ -173,6 +172,16 @@ export default function BudgetGenerator({
       setDurationDays(suggestedDays);
     }
   }, [formData.startDate, formData.endDate, suggestedDays, durationEdited]);
+
+  // Resetear la edición manual cuando cambien las fechas
+  useEffect(() => {
+    if (formData.startDate && formData.endDate) {
+      const newSuggestedDays = calculateDays(formData.startDate, formData.endDate);
+      if (newSuggestedDays > 0 && !durationEdited) {
+        setDurationDays(newSuggestedDays);
+      }
+    }
+  }, [formData.startDate, formData.endDate, durationEdited]);
 
   // --------- Filtros ---------
   const filteredCars = useMemo(() => {
@@ -650,22 +659,23 @@ export default function BudgetGenerator({
                     setDurationDays(v);
                     setDurationEdited(true);
                   }}
-                  className="w-24 px-2 py-1 border border-gray-300 rounded-md text-center"
+                  className="w-24 px-2 py-1 border border-gray-300 rounded-md text-center font-semibold"
                   title="Editar días de alquiler"
                 />
                 {!durationEdited ? (
-                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">Automático</span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">Automático</span>
                 ) : (
                   <button
                     type="button"
                     onClick={() => {
                       setDurationEdited(false);
-                      setDurationDays(suggestedDays || 1);
+                      const newDays = calculateDays(formData.startDate, formData.endDate);
+                      setDurationDays(newDays > 0 ? newDays : 1);
                     }}
-                    className="text-xs underline text-pink-700"
+                    className="text-xs underline text-pink-700 hover:text-pink-800 font-semibold"
                     title="Volver a usar el cálculo sugerido"
                   >
-                    Usar sugerido ({suggestedDays})
+                    Usar automático ({suggestedDays > 0 ? suggestedDays : 1})
                   </button>
                 )}
               </div>
@@ -688,13 +698,6 @@ export default function BudgetGenerator({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Seleccionar Autos del Inventario</h3>
-            <button
-              onClick={() => setShowFilters((v) => !v)}
-              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              {filters ? 'Mostrar/Ocultar Filtros' : 'Mostrar Filtros'}
-            </button>
           </div>
 
           {/** Panel de filtros */}
