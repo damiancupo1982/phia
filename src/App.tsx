@@ -23,7 +23,7 @@ function App() {
   useEffect(() => {
     // Limpiar inventario anterior y cargar el nuevo
     localStorage.removeItem('autosInventario');
-
+    
     const savedCars = localStorage.getItem('autosInventario');
     const savedSeasonSettings = localStorage.getItem('miami-rental-season');
     const savedBudgets = localStorage.getItem('miami-rental-budgets');
@@ -49,9 +49,6 @@ function App() {
 
     if (savedLogo) {
       setCompanyLogo(savedLogo);
-    } else {
-      // Logo por defecto: archivo en /public
-      setCompanyLogo('/Logo-Phia-Rental-OK.jpg');
     }
 
     if (savedLastClient) {
@@ -106,16 +103,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
-              {/* Logo oficial Phia desde /public o el cargado por el usuario */}
-              <img
-                src={companyLogo ?? '/Logo-Phia-Rental-OK.jpg'}
-                alt="Phia Rental"
-                className="h-12 w-12 rounded-full ring-2 ring-white object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/Logo-Phia-Rental-OK.jpg';
-                }}
-              />
-              <div className="bg-white/20 p-3 rounded-full hidden sm:flex items-center gap-1">
+              <div className="bg-white/20 p-3 rounded-full flex items-center gap-1">
                 <Heart className="h-6 w-6 text-white fill-white" />
                 <Palmtree className="h-6 w-6 text-white" />
               </div>
@@ -171,7 +159,7 @@ function App() {
             setReservationCounter={setReservationCounter}
           />
         )}
-
+        
         {activeTab === 'cars' && (
           <CarManagement
             cars={cars}
@@ -182,28 +170,35 @@ function App() {
             setCompanyLogo={setCompanyLogo}
           />
         )}
-
+        
         {activeTab === 'history' && (
-          <BudgetHistory
-            budgets={budgets}
+          <BudgetHistory 
+            budgets={budgets} 
             setBudgets={setBudgets}
             companyLogo={companyLogo}
             onDuplicateBudget={(budget) => {
+              // Cambiar a la pestaña de presupuesto y cargar los datos
               setActiveTab('budget');
+              // Aquí podrías implementar la lógica para precargar el formulario
+              // con los datos del presupuesto duplicado
             }}
           />
         )}
-
-        {activeTab === 'gallery' && <Gallery cars={cars} />}
+        
+        {activeTab === 'gallery' && (
+          <Gallery cars={cars} />
+        )}
       </main>
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-gray-300">© 2024 Phia Rental Miami Management System</p>
+            <p className="text-gray-300">
+              © 2024 Phia Rental Miami Management System
+            </p>
             <p className="text-gray-400 text-sm mt-2">
-              Desarrollado x Damian con ❤️ para Phia Rental Miami 🚗🌴
+              Desarrollado con ❤️ para Phia Rental Miami 🚗🌴
             </p>
           </div>
         </div>
