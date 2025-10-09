@@ -6,15 +6,14 @@ import {
   Trash2, 
   Share2, 
   Copy, 
+  Play, 
   FolderOpen, 
   Image as ImageIcon,
   Video,
+  ExternalLink,
   X,
   AlertCircle,
-  CheckCircle,
-  MessageCircle,
-  Download,
-  Check
+  CheckCircle
 } from 'lucide-react';
 
 interface Props {
@@ -24,7 +23,7 @@ interface Props {
 export default function Gallery({ cars }: Props) {
   const [galleries, setGalleries] = useState<Record<string, GalleryItem[]>>({});
   const [selectedCarId, setSelectedCarId] = useState<string | null>(null);
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [showShareModal, setShowShareModal] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState<{ type: 'image' | 'video', url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,9 +64,15 @@ export default function Gallery({ cars }: Props) {
   const handleFileUpload = (carId: string, files: FileList | null) => {
     if (!files) return;
 
-    const maxFilesPerCar = 50; // Aumentamos el límite
+    const maxFileSize = 10 * 1024 * 1024; // 10MB
+    const maxFilesPerCar = 20;
 
     Array.from(files).forEach(file => {
+      if (file.size > maxFileSize) {
+        showSuccess(`Archivo ${file.name} es muy grande (máximo 10MB)`);
+        return;
+      }
+
       const currentItems = galleries[carId] || [];
       if (currentItems.length >= maxFilesPerCar) {
         showSuccess(`Máximo ${maxFilesPerCar} archivos por auto`);
@@ -90,8 +95,7 @@ export default function Gallery({ cars }: Props) {
           type: isImage ? 'image' : 'video',
           url: e.target?.result as string,
           name: file.name,
-          uploadedAt: new Date().toISOString(),
-          selected: false
+          uploadedAt: new Date().toISOString()
         };
 
         setGalleries(prev => ({
@@ -110,129 +114,33 @@ export default function Gallery({ cars }: Props) {
       ...prev,
       [carId]: (prev[carId] || []).filter(item => item.id !== itemId)
     }));
-    // Remover de seleccionados si estaba seleccionado
-    setSelectedItems(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(itemId);
-      return newSet;
-    });
     showSuccess('Archivo eliminado');
   };
 
-  const toggleItemSelection = (itemId: string) => {
-    setSelectedItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId);
-      } else {
-        newSet.add(itemId);
-      }
-      return newSet;
+  const generateShareLink = (carId: string) => {
+    const car = cars.find(c => c.id === carId);
+    if (!car) return '';
+
+    const galleryData = galleries[carId] || [];
+    const shareData = {
+      carName: car.name,
+      carType: car.type,
+      items: galleryData,
+      timestamp: Date.now()
+    };
+
+    // En una implementación real, esto sería un endpoint del servidor
+    // Por ahora, creamos un link simulado con los datos codificados
+    const encodedData = btoa(JSON.stringify(shareData));
+    return `${window.location.origin}/gallery-share/${encodedData}`;
+  };
+
+  const copyShareLink = (carId: string) => {
+    const link = generateShareLink(carId);
+    navigator.clipboard.writeText(link).then(() => {
+      showSuccess('Link copiado al portapapeles');
+      setShowShareModal(null);
     });
-  };
-
-  const selectAllItems = (carId: string) => {
-    const carItems = galleries[carId] || [];
-    const carItemIds = carItems.map(item => item.id);
-    setSelectedItems(prev => {
-      const newSet = new Set(prev);
-      carItemIds.forEach(id => newSet.add(id));
-      return newSet;
-    });
-    showSuccess(`${carItemIds.length} elementos seleccionados`);
-  };
-
-  const clearSelection = () => {
-    setSelectedItems(new Set());
-    showSuccess('Selección limpiada');
-  };
-
-  const copySelectedAsImages = async () => {
-    if (selectedItems.size === 0) {
-      showSuccess('No hay elementos seleccionados');
-      return;
-    }
-
-    const selectedGalleryItems = selectedCarId 
-      ? (galleries[selectedCarId] || []).filter(item => selectedItems.has(item.id) && item.type === 'image')
-      : [];
-
-    if (selectedGalleryItems.length === 0) {
-      showSuccess('No hay imágenes seleccionadas');
-      return;
-    }
-
-    try {
-      if (selectedGalleryItems.length === 1) {
-        // Una sola imagen - copiar al portapapeles
-        const response = await fetch(selectedGalleryItems[0].url);
-        const blob = await response.blob();
-
-        if (navigator.clipboard && navigator.clipboard.write) {
-          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-          showSuccess('Imagen copiada al portapapeles');
-        } else {
-          // Fallback: descargar
-          const link = document.createElement('a');
-          link.href = selectedGalleryItems[0].url;
-          link.download = selectedGalleryItems[0].name;
-          link.click();
-          showSuccess('Imagen descargada');
-        }
-      } else {
-        // Múltiples imágenes - descargar todas
-        selectedGalleryItems.forEach((item, index) => {
-          setTimeout(() => {
-            const link = document.createElement('a');
-            link.href = item.url;
-            link.download = `${item.name}`;
-            link.click();
-          }, index * 100); // Pequeño delay entre descargas
-        });
-        showSuccess(`${selectedGalleryItems.length} imágenes descargadas`);
-      }
-    } catch (error) {
-      console.error('Error copying images:', error);
-      showSuccess('Error al copiar imágenes');
-    }
-  };
-
-  const shareSelectedWhatsApp = async () => {
-    if (selectedItems.size === 0) {
-      showSuccess('No hay elementos seleccionados');
-      return;
-    }
-
-    const selectedGalleryItems = selectedCarId 
-      ? (galleries[selectedCarId] || []).filter(item => selectedItems.has(item.id) && item.type === 'image')
-      : [];
-
-    if (selectedGalleryItems.length === 0) {
-      showSuccess('No hay imágenes seleccionadas para compartir');
-      return;
-    }
-
-    const car = cars.find(c => c.id === selectedCarId);
-    const message = `🚗 *Fotos de ${car?.name || 'vehículo'}* 🌴\n\n` +
-      `📸 ${selectedGalleryItems.length} imagen${selectedGalleryItems.length > 1 ? 'es' : ''} adjunta${selectedGalleryItems.length > 1 ? 's' : ''}\n\n` +
-      `¡Consulta nuestras mejores ofertas en Phia Rental Miami!\n\n` +
-      `🌴 Tu mejor opción para rentar autos en Miami 🌴`;
-
-    // Descargar todas las imágenes seleccionadas
-    selectedGalleryItems.forEach((item, index) => {
-      setTimeout(() => {
-        const link = document.createElement('a');
-        link.href = item.url;
-        link.download = `phia-${car?.name?.replace(/\s+/g, '-').toLowerCase()}-${index + 1}.jpg`;
-        link.click();
-      }, index * 100);
-    });
-
-    // Abrir WhatsApp
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-
-    showSuccess(`${selectedGalleryItems.length} imágenes descargadas y WhatsApp abierto`);
   };
 
   const showSuccess = (message: string) => {
@@ -244,7 +152,6 @@ export default function Gallery({ cars }: Props) {
   const selectedGallery = selectedCarId ? galleries[selectedCarId] || [] : [];
   const images = selectedGallery.filter(item => item.type === 'image');
   const videos = selectedGallery.filter(item => item.type === 'video');
-  const selectedCount = selectedItems.size;
 
   return (
     <div className="space-y-8">
@@ -267,7 +174,7 @@ export default function Gallery({ cars }: Props) {
           // Vista de carpetas
           <div>
             <p className="text-gray-600 mb-6">
-              Selecciona un vehículo para gestionar su galería de fotos y videos
+              Selecciona un vehículo para ver y gestionar su galería de imágenes y videos
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -328,10 +235,7 @@ export default function Gallery({ cars }: Props) {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => {
-                    setSelectedCarId(null);
-                    setSelectedItems(new Set());
-                  }}
+                  onClick={() => setSelectedCarId(null)}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   ← Volver
@@ -343,6 +247,15 @@ export default function Gallery({ cars }: Props) {
               </div>
               
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowShareModal(selectedCarId)}
+                  disabled={selectedGallery.length === 0}
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Compartir Galería
+                </button>
+                
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -362,57 +275,6 @@ export default function Gallery({ cars }: Props) {
               </div>
             </div>
 
-            {/* Controles de selección */}
-            {selectedGallery.length > 0 && (
-              <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-4 mb-6 border border-pink-200">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-semibold text-gray-700">
-                      {selectedCount > 0 ? `${selectedCount} seleccionado${selectedCount > 1 ? 's' : ''}` : 'Ninguno seleccionado'}
-                    </span>
-                    
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => selectAllItems(selectedCarId)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-semibold transition-all"
-                      >
-                        Seleccionar Todo
-                      </button>
-                      
-                      {selectedCount > 0 && (
-                        <button
-                          onClick={clearSelection}
-                          className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-xs font-semibold transition-all"
-                        >
-                          Limpiar
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {selectedCount > 0 && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={copySelectedAsImages}
-                        className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
-                      >
-                        <Copy className="h-4 w-4" />
-                        {selectedCount === 1 ? 'Copiar' : 'Descargar'}
-                      </button>
-                      
-                      <button
-                        onClick={shareSelectedWhatsApp}
-                        className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        WhatsApp
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Galería de imágenes */}
             {images.length > 0 && (
               <div className="mb-8">
@@ -421,56 +283,26 @@ export default function Gallery({ cars }: Props) {
                   Imágenes ({images.length})
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-                  {images.map(item => {
-                    const isSelected = selectedItems.has(item.id);
-                    return (
-                      <div key={item.id} className="relative group">
-                        <div 
-                          className={`aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-4 transition-all ${
-                            isSelected ? 'border-pink-500 shadow-lg' : 'border-transparent'
-                          }`}
-                          onClick={() => toggleItemSelection(item.id)}
-                        >
-                          <img
-                            src={item.url}
-                            alt={item.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                          />
-                          
-                          {/* Checkbox de selección */}
-                          <div className="absolute top-2 left-2">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${
-                              isSelected ? 'bg-pink-500 text-white' : 'bg-white bg-opacity-80 text-gray-600'
-                            }`}>
-                              {isSelected ? <Check className="h-4 w-4" /> : <div className="w-3 h-3 border-2 border-gray-400 rounded-full" />}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Botón de eliminar */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteItem(selectedCarId, item.id);
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-
-                        {/* Botón de vista previa */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowPreview({ type: 'image', url: item.url });
-                          }}
-                          className="absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <ImageIcon className="h-3 w-3" />
-                        </button>
+                  {images.map(item => (
+                    <div key={item.id} className="relative group">
+                      <div 
+                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                        onClick={() => setShowPreview({ type: 'image', url: item.url })}
+                      >
+                        <img
+                          src={item.url}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
                       </div>
-                    );
-                  })}
+                      <button
+                        onClick={() => deleteItem(selectedCarId, item.id)}
+                        className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -495,7 +327,7 @@ export default function Gallery({ cars }: Props) {
                           muted
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                          <Video className="h-8 w-8 text-white" />
+                          <Play className="h-8 w-8 text-white" />
                         </div>
                       </div>
                       <button
@@ -527,6 +359,64 @@ export default function Gallery({ cars }: Props) {
           </div>
         )}
       </div>
+
+      {/* Modal de compartir */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">Compartir Galería</h3>
+              <button
+                onClick={() => setShowShareModal(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <ExternalLink className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-blue-800">Link de solo lectura</span>
+                </div>
+                <p className="text-xs text-blue-700">
+                  Este link permite ver la galería sin poder editarla
+                </p>
+              </div>
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <p className="text-xs text-gray-600 font-mono break-all">
+                  {generateShareLink(showShareModal)}
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => copyShareLink(showShareModal)}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <Copy className="h-4 w-4" />
+                  Copiar Link
+                </button>
+                
+                <button
+                  onClick={() => {
+                    const link = generateShareLink(showShareModal);
+                    const car = cars.find(c => c.id === showShareModal);
+                    const message = `🚗 *Galería de ${car?.name}* 🌴\n\nMira las fotos y videos de este vehículo:\n${link}\n\n📱 Phia Rental Miami`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                  }}
+                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                >
+                  <Share2 className="h-4 w-4" />
+                  WhatsApp
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de preview */}
       {showPreview && (
@@ -564,11 +454,9 @@ export default function Gallery({ cars }: Props) {
           <span className="text-sm font-semibold text-yellow-800">Información de Almacenamiento</span>
         </div>
         <div className="text-xs text-yellow-700 space-y-1">
-          <p>• Máximo 50 archivos por vehículo</p>
-          <p>• Acepta cualquier formato de imagen y video</p>
-          <p>• Selecciona las fotos que quieras compartir</p>
-          <p>• Copia una imagen al portapapeles o descarga múltiples</p>
-          <p>• Comparte directamente por WhatsApp</p>
+          <p>• Máximo 20 archivos por vehículo</p>
+          <p>• Tamaño máximo por archivo: 10MB</p>
+          <p>• Formatos soportados: JPG, PNG, WEBP, MP4, WEBM, MOV</p>
           <p>• Los archivos se almacenan localmente en tu navegador</p>
         </div>
       </div>
