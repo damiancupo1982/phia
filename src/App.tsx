@@ -21,7 +21,8 @@ function App() {
 
   // Cargar datos del localStorage
   useEffect(() => {
-    localStorage.removeItem('autosInventario'); // limpia inventario viejo
+    // Limpiar inventario anterior y cargar el nuevo
+    localStorage.removeItem('autosInventario');
 
     const savedCars = localStorage.getItem('autosInventario');
     const savedSeasonSettings = localStorage.getItem('miami-rental-season');
@@ -33,6 +34,7 @@ function App() {
     if (savedCars) {
       setCars(JSON.parse(savedCars));
     } else {
+      // Cargar inventario inicial actualizado de Phia Rental Miami
       setCars(initialInventory);
       localStorage.setItem('autosInventario', JSON.stringify(initialInventory));
     }
@@ -42,16 +44,13 @@ function App() {
     }
 
     if (savedBudgets) {
-      try {
-        setBudgets(JSON.parse(savedBudgets));
-      } catch {
-        setBudgets([]);
-      }
+      setBudgets(JSON.parse(savedBudgets));
     }
 
     if (savedLogo) {
       setCompanyLogo(savedLogo);
     } else {
+      // Logo por defecto: archivo en /public
       setCompanyLogo('/Logo-Phia-Rental-OK.jpg');
     }
 
@@ -64,41 +63,31 @@ function App() {
     }
   }, []);
 
-  // Guardar autos
+  // Guardar datos en localStorage
   useEffect(() => {
     localStorage.setItem('autosInventario', JSON.stringify(cars));
   }, [cars]);
 
-  // Guardar temporada
   useEffect(() => {
     localStorage.setItem('miami-rental-season', JSON.stringify(seasonSettings));
   }, [seasonSettings]);
 
-  // Guardar presupuestos (limitados a 100)
   useEffect(() => {
-    try {
-      const limitedBudgets = budgets.slice(-100); // solo últimos 100
-      localStorage.setItem('miami-rental-budgets', JSON.stringify(limitedBudgets));
-    } catch (err) {
-      console.error('Error guardando presupuestos en localStorage:', err);
-    }
+    localStorage.setItem('miami-rental-budgets', JSON.stringify(budgets));
   }, [budgets]);
 
-  // Guardar logo
   useEffect(() => {
     if (companyLogo) {
       localStorage.setItem('logoPhia', companyLogo);
     }
   }, [companyLogo]);
 
-  // Guardar último cliente
   useEffect(() => {
     if (lastClientName) {
       localStorage.setItem('miami-rental-last-client', lastClientName);
     }
   }, [lastClientName]);
 
-  // Guardar contador reservas
   useEffect(() => {
     localStorage.setItem('reservaCounter', reservationCounter.toString());
   }, [reservationCounter]);
@@ -117,6 +106,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
+              {/* Logo oficial Phia desde /public o el cargado por el usuario */}
               <img
                 src={companyLogo ?? '/Logo-Phia-Rental-OK.jpg'}
                 alt="Phia Rental"

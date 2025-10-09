@@ -1,7 +1,6 @@
-// src/components/BudgetGenerator.tsx
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Car, SeasonSettings, Budget, BudgetItem, CarFilters } from '../types';
-import { FileText, Download, Calculator, MessageCircle, Search, Filter, X, Copy } from 'lucide-react';
+import { FileText, Upload, Download, Calculator, Share2, Copy, MessageCircle, Search, Filter, X } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import html2canvas from 'html2canvas';
 
@@ -17,87 +16,14 @@ interface Props {
   setReservationCounter: React.Dispatch<React.SetStateAction<number>>;
 }
 
-/** Normaliza distintos esquemas de autos que pueden venir desde "Gestión de autos" */
-type CarNormalized = {
-  id: string;
-  name: string;
-  type?: string;
-  fuel?: string;
-  seats?: number;
-  lowSeasonPrice: number;   // siempre numérico (0 si no hay)
-  highSeasonPrice: number;  // siempre numérico (>= lowSeasonPrice si solo hay un precio)
-};
-
-function toNumberSafe(v: any, fallback = 0): number {
-  const n = typeof v === 'string' ? Number(v.replace(',', '.')) : Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-function normalizeCar(c: any): CarNormalized {
-  // Intentar mapear múltiples nombres posibles
-  const low =
-    toNumberSafe(c.lowSeasonPrice) ||
-    toNumberSafe(c.priceLow) ||
-    toNumberSafe(c.precioBaja) ||
-    toNumberSafe(c.price) ||               // precio único
-    toNumberSafe(c.pricePerDay) ||
-    0;
-
-  const high =
-    toNumberSafe(c.highSeasonPrice) ||
-    toNumberSafe(c.priceHigh) ||
-    toNumberSafe(c.precioAlta) ||
-    low; // si no hay alta, usar el de baja
-
-  const seats =
-    c.seats != null
-      ? Number(c.seats)
-      : c.plazas != null
-      ? Number(c.plazas)
-      : undefined;
-
-  return {
-    id: String(c.id ?? c._id ?? crypto.randomUUID()),
-    name: String(c.name ?? c.modelo ?? c.title ?? 'Vehículo'),
-    type: c.type ?? c.tipo ?? c.category ?? undefined,
-    fuel: c.fuel ?? c.combustible ?? undefined,
-    seats: Number.isFinite(seats as number) ? (seats as number) : undefined,
-    lowSeasonPrice: low,
-    highSeasonPrice: Math.max(high, low),
-  };
-}
-
 export default function BudgetGenerator({
-  cars,
-  seasonSettings,
-  budgets,
-  setBudgets,
-  companyLogo,
-  lastClientName,
-  setLastClientName,
-  reservationCounter,
-  setReservationCounter,
+  cars, seasonSettings, budgets, setBudgets, companyLogo, lastClientName, setLastClientName, reservationCounter, setReservationCounter
 }: Props) {
-  // Normalizar inventario UNA vez por cambio de cars
-  const normalizedCars = useMemo<CarNormalized[]>(
-    () => (Array.isArray(cars) ? cars.map(normalizeCar) : []),
-    [cars]
-  );
-
-  // Calcular máximos dinámicos para el slider de precio (según inventario)
-  const maxLowPrice = useMemo(
-    () =>
-      normalizedCars.length
-        ? Math.max(...normalizedCars.map((c) => c.lowSeasonPrice || 0), 300)
-        : 300,
-    [normalizedCars]
-  );
-
   const [formData, setFormData] = useState({
     clientName: lastClientName,
     reservationNumber: `#${reservationCounter.toString().padStart(4, '0')}`,
     startDate: '',
-    endDate: '',
+    endDate: ''
   });
 
   // NUEVO: días editables y flag si el usuario los tocó
@@ -107,22 +33,15 @@ export default function BudgetGenerator({
   const [selectedCars, setSelectedCars] = useState<Map<string, BudgetItem>>(new Map());
   const budgetRef = useRef<HTMLDivElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-
+  const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [filters, setFilters] = useState<CarFilters>({
     type: '',
     fuel: '',
     seats: '',
-    priceRange: [0, maxLowPrice], // usar máximo dinámico
-    searchTerm: '',
+    priceRange: [0, 300],
+    searchTerm: ''
   });
-
-  // Si cambia el máximo por un cambio en el inventario, ajustar filtro
-  useEffect(() => {
-    setFilters((prev) => ({
-      ...prev,
-      priceRange: [prev.priceRange?.[0] ?? 0, Math.max(prev.priceRange?.[1] ?? maxLowPrice, maxLowPrice)],
-    }));
-  }, [maxLowPrice]);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Actualizar el último nombre de cliente cuando cambie
   useEffect(() => {
@@ -134,9 +53,9 @@ export default function BudgetGenerator({
   // Generar nuevo número de reserva cuando se inicia un nuevo presupuesto
   useEffect(() => {
     if (!formData.reservationNumber || formData.reservationNumber === '') {
-      setFormData((prev) => ({
+      setFormData(prev => ({
         ...prev,
-        reservationNumber: `#${reservationCounter.toString().padStart(4, '0')}`,
+        reservationNumber: `#${reservationCounter.toString().padStart(4, '0')}`
       }));
     }
   }, [reservationCounter, formData.reservationNumber]);
@@ -156,16 +75,17 @@ export default function BudgetGenerator({
     const start = new Date(startDate);
     const end = new Date(endDate);
     // normalizo a medianoche para evitar parciales por hora
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
+    start.setHours(0,0,0,0);
+    end.setHours(0,0,0,0);
     const diffTime = end.getTime() - start.getTime();
     const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(0, days);
   };
 
   // NUEVO: mantener "sugerido" en sync mientras no se haya editado
-  const suggestedDays =
-    formData.startDate && formData.endDate ? calculateDays(formData.startDate, formData.endDate) : 0;
+  const suggestedDays = formData.startDate && formData.endDate
+    ? calculateDays(formData.startDate, formData.endDate)
+    : 0;
 
   useEffect(() => {
     if (!durationEdited) {
@@ -173,55 +93,27 @@ export default function BudgetGenerator({
     }
   }, [formData.startDate, formData.endDate, suggestedDays, durationEdited]);
 
-  // Resetear la edición manual cuando cambien las fechas
-  useEffect(() => {
-    if (formData.startDate && formData.endDate) {
-      const newSuggestedDays = calculateDays(formData.startDate, formData.endDate);
-      if (newSuggestedDays > 0 && !durationEdited) {
-        setDurationDays(newSuggestedDays);
-      }
-    }
-  }, [formData.startDate, formData.endDate, durationEdited]);
-
   // --------- Filtros ---------
-  const filteredCars = useMemo(() => {
-    const seatsFilter = filters.seats ? Number(filters.seats) : undefined;
-    const maxPrice = (filters.priceRange?.[1] ?? maxLowPrice);
+  const filteredCars = cars.filter(car => {
+    const matchesType = !filters.type || car.type?.toLowerCase().includes(filters.type.toLowerCase());
+    const matchesFuel = !filters.fuel || car.fuel?.toLowerCase().includes(filters.fuel.toLowerCase());
+    const matchesSeats = !filters.seats || (car.seats && car.seats.toString() === filters.seats);
+    const matchesPrice = car.lowSeasonPrice >= filters.priceRange[0] && car.lowSeasonPrice <= filters.priceRange[1];
+    const matchesSearch = !filters.searchTerm || car.name.toLowerCase().includes(filters.searchTerm.toLowerCase());
+    return matchesType && matchesFuel && matchesSeats && matchesPrice && matchesSearch;
+  });
 
-    return normalizedCars.filter((car) => {
-      const matchesType = !filters.type || (car.type ?? '').toLowerCase().includes(filters.type.toLowerCase());
-      const matchesFuel = !filters.fuel || (car.fuel ?? '').toLowerCase().includes(filters.fuel.toLowerCase());
-      const matchesSeats = seatsFilter == null || car.seats === seatsFilter;
-      // Si no hay lowSeasonPrice numérico, NO lo descartes (lo mostramos igual como "sin precio")
-      const price = Number.isFinite(car.lowSeasonPrice) ? car.lowSeasonPrice : 0;
-      const matchesPrice = price <= maxPrice;
-      const matchesSearch =
-        !filters.searchTerm || (car.name ?? '').toLowerCase().includes(filters.searchTerm.toLowerCase());
-
-      return matchesType && matchesFuel && matchesSeats && matchesPrice && matchesSearch;
-    });
-  }, [normalizedCars, filters, maxLowPrice]);
-
-  const uniqueTypes = useMemo(
-    () => [...new Set(normalizedCars.map((car) => car.type).filter(Boolean))],
-    [normalizedCars]
-  );
-  const uniqueFuels = useMemo(
-    () => [...new Set(normalizedCars.map((car) => car.fuel).filter(Boolean))],
-    [normalizedCars]
-  );
-  const uniqueSeats = useMemo(
-    () => [...new Set(normalizedCars.map((car) => car.seats).filter((v): v is number => typeof v === 'number'))].sort((a, b) => a - b),
-    [normalizedCars]
-  );
+  const uniqueTypes = [...new Set(cars.map(car => car.type).filter(Boolean))];
+  const uniqueFuels = [...new Set(cars.map(car => car.fuel).filter(Boolean))];
+  const uniqueSeats = [...new Set(cars.map(car => car.seats).filter(Boolean))].sort((a, b) => a! - b!);
 
   const clearFilters = () => {
     setFilters({
       type: '',
       fuel: '',
       seats: '',
-      priceRange: [0, maxLowPrice],
-      searchTerm: '',
+      priceRange: [0, 300],
+      searchTerm: ''
     });
   };
 
@@ -231,16 +123,10 @@ export default function BudgetGenerator({
     if (newSelected.has(carId)) {
       newSelected.delete(carId);
     } else {
-      const car = normalizedCars.find((c) => c.id === carId);
-      if (!car) return;
-
-      const season =
-        formData.startDate && formData.endDate
-          ? isHighSeason(formData.startDate, formData.endDate)
-            ? 'alta'
-            : 'baja'
-          : 'baja';
-
+      const car = cars.find(c => c.id === carId)!;
+      const season = formData.startDate && formData.endDate
+        ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja')
+        : 'baja';
       const pricePerDay = season === 'alta' ? car.highSeasonPrice : car.lowSeasonPrice;
 
       const budgetItem: BudgetItem = {
@@ -249,10 +135,10 @@ export default function BudgetGenerator({
         carType: car.type || 'Auto',
         carFuel: car.fuel,
         price: 0, // se calcula después
-        pricePerDay: Number.isFinite(pricePerDay) ? pricePerDay : 0,
-        originalPricePerDay: Number.isFinite(pricePerDay) ? pricePerDay : 0,
+        pricePerDay,
+        originalPricePerDay: pricePerDay,
         season,
-        manuallyEdited: false,
+        manuallyEdited: false
       };
       newSelected.set(carId, budgetItem);
     }
@@ -263,7 +149,7 @@ export default function BudgetGenerator({
     const newSelected = new Map(selectedCars);
     const item = newSelected.get(carId);
     if (item) {
-      item.pricePerDay = Number.isFinite(newPrice) ? newPrice : 0;
+      item.pricePerDay = newPrice;
       item.manuallyEdited = true;
       newSelected.set(carId, item);
       setSelectedCars(newSelected);
@@ -273,14 +159,13 @@ export default function BudgetGenerator({
   const updateCarSeason = (carId: string, newSeason: 'alta' | 'baja') => {
     const newSelected = new Map(selectedCars);
     const item = newSelected.get(carId);
-    const car = normalizedCars.find((c) => c.id === carId);
+    const car = cars.find(c => c.id === carId);
     if (item && car) {
       item.season = newSeason;
       if (!item.manuallyEdited) {
         const newPrice = newSeason === 'alta' ? car.highSeasonPrice : car.lowSeasonPrice;
-        const p = Number.isFinite(newPrice) ? newPrice : 0;
-        item.pricePerDay = p;
-        item.originalPricePerDay = p;
+        item.pricePerDay = newPrice;
+        item.originalPricePerDay = newPrice;
       }
       newSelected.set(carId, item);
       setSelectedCars(newSelected);
@@ -300,10 +185,12 @@ export default function BudgetGenerator({
 
     setIsGenerating(true);
 
-    const items: BudgetItem[] = Array.from(selectedCars.values()).map((item) => ({
-      ...item,
-      price: item.pricePerDay * durationDays,
-    }));
+    const items: BudgetItem[] = Array.from(selectedCars.values()).map(item => {
+      return {
+        ...item,
+        price: item.pricePerDay * durationDays
+      };
+    });
 
     items.sort((a, b) => a.pricePerDay - b.pricePerDay);
     const total = items.reduce((sum, item) => sum + item.price, 0);
@@ -317,17 +204,17 @@ export default function BudgetGenerator({
       items,
       total,
       createdAt: new Date().toISOString(),
-      days: durationDays,
+      days: durationDays // usar los días editables
     };
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
     const { pdfBase64, imageBase64 } = await generatePDFAndImage(budget);
 
     const budgetWithAssets = { ...budget, pdfBase64, imageBase64 };
-    setBudgets((prev) => [...prev, budgetWithAssets]);
+    setBudgets(prev => [...prev, budgetWithAssets]);
     setIsGenerating(false);
 
-    setReservationCounter((prev) => prev + 1);
+    setReservationCounter(prev => prev + 1);
 
     // Limpiar formulario y volver a automático
     const nextReservationNumber = `#${(reservationCounter + 1).toString().padStart(4, '0')}`;
@@ -349,7 +236,7 @@ export default function BudgetGenerator({
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     let pdfBase64 = '';
     let imageBase64 = '';
@@ -361,7 +248,7 @@ export default function BudgetGenerator({
         backgroundColor: '#ffffff',
         width: element.scrollWidth,
         height: element.scrollHeight,
-        logging: false,
+        logging: false
       });
       imageBase64 = canvas.toDataURL('image/png');
 
@@ -376,14 +263,15 @@ export default function BudgetGenerator({
           backgroundColor: '#ffffff',
           logging: false,
           width: element.scrollWidth,
-          height: element.scrollHeight,
+          height: element.scrollHeight
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-      } as const;
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
+      };
 
-      const pdfBlob = await (html2pdf() as any).from(element).set(opt).outputPdf('datauristring');
+      const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('datauristring');
       pdfBase64 = pdfBlob;
-      await (html2pdf() as any).from(element).set(opt).save();
+      await html2pdf().from(element).set(opt).save();
+
     } catch (error) {
       console.error('Error generating PDF/Image:', error);
     } finally {
@@ -412,7 +300,7 @@ export default function BudgetGenerator({
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     const opt = {
       margin: [10, 10, 10, 10],
@@ -425,13 +313,13 @@ export default function BudgetGenerator({
         backgroundColor: '#ffffff',
         logging: false,
         width: element.scrollWidth,
-        height: element.scrollHeight,
+        height: element.scrollHeight
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-    } as const;
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
+    };
 
     try {
-      await (html2pdf() as any).from(element).set(opt).save();
+      await html2pdf().from(element).set(opt).save();
       showSuccess('PDF generado exitosamente');
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -460,7 +348,7 @@ export default function BudgetGenerator({
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
       const canvas = await html2canvas(element, {
@@ -472,18 +360,18 @@ export default function BudgetGenerator({
         height: element.scrollHeight,
         logging: false,
         onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-budget-template]') as HTMLElement | null;
+          const clonedElement = clonedDoc.querySelector('[data-budget-template]');
           if (clonedElement) {
             clonedElement.style.position = 'static';
             clonedElement.style.opacity = '1';
           }
-        },
+        }
       });
 
       canvas.toBlob(async (blob) => {
-        if (blob && navigator.clipboard && (navigator.clipboard as any).write) {
+        if (blob && navigator.clipboard && navigator.clipboard.write) {
           try {
-            await (navigator.clipboard as any).write([new (window as any).ClipboardItem({ 'image/png': blob })]);
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
             showSuccess('Imagen copiada al portapapeles');
           } catch (err) {
             console.error('Error copying to clipboard:', err);
@@ -528,7 +416,7 @@ export default function BudgetGenerator({
     element.style.opacity = '1';
     element.style.pointerEvents = 'auto';
     element.style.zIndex = '9999';
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     try {
       const canvas = await html2canvas(element, {
@@ -540,12 +428,12 @@ export default function BudgetGenerator({
         height: element.scrollHeight,
         logging: false,
         onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-budget-template]') as HTMLElement | null;
+          const clonedElement = clonedDoc.querySelector('[data-budget-template]');
           if (clonedElement) {
             clonedElement.style.position = 'static';
             clonedElement.style.opacity = '1';
           }
-        },
+        }
       });
 
       const imageData = canvas.toDataURL('image/png');
@@ -584,10 +472,12 @@ export default function BudgetGenerator({
   };
 
   // Derivados para UI / totales (SIEMPRE usar durationDays)
-  const season = formData.startDate && formData.endDate ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja') : null;
+  const season = formData.startDate && formData.endDate
+    ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja')
+    : null;
 
   const selectedCarsData = Array.from(selectedCars.values());
-  const total = selectedCarsData.reduce((sum, item) => sum + item.pricePerDay * Math.max(0, durationDays), 0);
+  const total = selectedCarsData.reduce((sum, item) => sum + (item.pricePerDay * Math.max(0, durationDays)), 0);
 
   return (
     <div className="space-y-8">
@@ -604,7 +494,7 @@ export default function BudgetGenerator({
             <input
               type="text"
               value={formData.clientName}
-              onChange={(e) => setFormData((prev) => ({ ...prev, clientName: e.target.value }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
               placeholder="Ej: Juan Pérez"
             />
@@ -624,9 +514,7 @@ export default function BudgetGenerator({
             <input
               type="date"
               value={formData.startDate}
-              onChange={(e) => {
-                setFormData((prev) => ({ ...prev, startDate: e.target.value }));
-              }}
+              onChange={(e) => { setFormData(prev => ({ ...prev, startDate: e.target.value })); }}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
             />
           </div>
@@ -635,9 +523,7 @@ export default function BudgetGenerator({
             <input
               type="date"
               value={formData.endDate}
-              onChange={(e) => {
-                setFormData((prev) => ({ ...prev, endDate: e.target.value }));
-              }}
+              onChange={(e) => { setFormData(prev => ({ ...prev, endDate: e.target.value })); }}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
             />
           </div>
@@ -659,23 +545,19 @@ export default function BudgetGenerator({
                     setDurationDays(v);
                     setDurationEdited(true);
                   }}
-                  className="w-24 px-2 py-1 border border-gray-300 rounded-md text-center font-semibold"
+                  className="w-24 px-2 py-1 border border-gray-300 rounded-md text-center"
                   title="Editar días de alquiler"
                 />
                 {!durationEdited ? (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-semibold">Automático</span>
+                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">Automático</span>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      setDurationEdited(false);
-                      const newDays = calculateDays(formData.startDate, formData.endDate);
-                      setDurationDays(newDays > 0 ? newDays : 1);
-                    }}
-                    className="text-xs underline text-pink-700 hover:text-pink-800 font-semibold"
+                    onClick={() => { setDurationEdited(false); setDurationDays(suggestedDays || 1); }}
+                    className="text-xs underline text-pink-700"
                     title="Volver a usar el cálculo sugerido"
                   >
-                    Usar automático ({suggestedDays > 0 ? suggestedDays : 1})
+                    Usar sugerido ({suggestedDays})
                   </button>
                 )}
               </div>
@@ -698,106 +580,104 @@ export default function BudgetGenerator({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800">Seleccionar Autos del Inventario</h3>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+            </button>
           </div>
 
-          {/** Panel de filtros */}
-          <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-6 mb-6 border border-pink-200">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-              {/* Búsqueda por nombre */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Buscar por nombre</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          {showFilters && (
+            <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-6 mb-6 border border-pink-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+                {/* Búsqueda por nombre */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Buscar por nombre</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={filters.searchTerm}
+                      onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                      placeholder="Ej: Toyota, BMW..."
+                    />
+                  </div>
+                </div>
+
+                {/* Filtro por tipo */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de auto</label>
+                  <select
+                    value={filters.type}
+                    onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                  >
+                    <option value="">Todos los tipos</option>
+                    {uniqueTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filtro por combustible */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Combustible</label>
+                  <select
+                    value={filters.fuel}
+                    onChange={(e) => setFilters(prev => ({ ...prev, fuel: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                  >
+                    <option value="">Todos</option>
+                    {uniqueFuels.map(fuel => (
+                      <option key={fuel} value={fuel}>{fuel}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filtro por plazas */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Plazas</label>
+                  <select
+                    value={filters.seats}
+                    onChange={(e) => setFilters(prev => ({ ...prev, seats: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                  >
+                    <option value="">Todas</option>
+                    {uniqueSeats.map(seats => (
+                      <option key={seats} value={seats}>{seats} plazas</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Rango de precios */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Precio máximo: ${filters.priceRange[1]}</label>
                   <input
-                    type="text"
-                    value={filters.searchTerm}
-                    onChange={(e) => setFilters((prev) => ({ ...prev, searchTerm: e.target.value }))}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
-                    placeholder="Ej: Toyota, BMW..."
+                    type="range"
+                    min="0"
+                    max="300"
+                    value={filters.priceRange[1]}
+                    onChange={(e) => setFilters(prev => ({ ...prev, priceRange: [0, parseInt(e.target.value)] }))}
+                    className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer slider-thumb"
                   />
                 </div>
               </div>
 
-              {/* Filtro por tipo */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Tipo de auto</label>
-                <select
-                  value={filters.type}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, type: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">Mostrando {filteredCars.length} de {cars.length} autos</div>
+                <button
+                  onClick={clearFilters}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
                 >
-                  <option value="">Todos los tipos</option>
-                  {uniqueTypes.map((type) => (
-                    <option key={type} value={type!}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Filtro por combustible */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Combustible</label>
-                <select
-                  value={filters.fuel}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, fuel: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
-                >
-                  <option value="">Todos</option>
-                  {uniqueFuels.map((fuel) => (
-                    <option key={fuel} value={fuel!}>
-                      {fuel}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Filtro por plazas */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Plazas</label>
-                <select
-                  value={filters.seats}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, seats: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
-                >
-                  <option value="">Todas</option>
-                  {uniqueSeats.map((seats) => (
-                    <option key={seats} value={seats}>
-                      {seats} plazas
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Rango de precios */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Precio máximo: ${filters.priceRange?.[1] ?? maxLowPrice}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max={String(maxLowPrice)}
-                  value={filters.priceRange?.[1] ?? maxLowPrice}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, priceRange: [0, parseInt(e.target.value, 10)] }))
-                  }
-                  className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer slider-thumb"
-                />
+                  <X className="h-4 w-4" />
+                  Limpiar Filtros
+                </button>
               </div>
             </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-600">Mostrando {filteredCars.length} de {normalizedCars.length} autos</div>
-              <button
-                onClick={clearFilters}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
-              >
-                <X className="h-4 w-4" />
-                Limpiar Filtros
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Selección de Autos */}
@@ -825,7 +705,7 @@ export default function BudgetGenerator({
                       <div>
                         <h4 className="font-bold text-gray-900">{car.name}</h4>
                         <p className="text-sm text-gray-600">{car.type || 'Auto'}</p>
-                        {car.seats && <p className="text-xs text-gray-500">{car.seats} plazas</p>}
+                        {car.seats && (<p className="text-xs text-gray-500">{car.seats} plazas</p>)}
                       </div>
                     </div>
                   </div>
@@ -878,23 +758,9 @@ export default function BudgetGenerator({
 
                   {!isSelected && (
                     <div className="text-sm text-gray-600 space-y-1">
-                      {car.seats && (
-                        <div>
-                          Plazas: <span className="font-semibold">{car.seats}</span>
-                        </div>
-                      )}
-                      <div>
-                        Temp. Baja:{' '}
-                        <span className="font-semibold">
-                          {car.lowSeasonPrice ? `$${car.lowSeasonPrice.toFixed(2)}/día` : '—'}
-                        </span>
-                      </div>
-                      <div>
-                        Temp. Alta:{' '}
-                        <span className="font-semibold">
-                          {car.highSeasonPrice ? `$${car.highSeasonPrice.toFixed(2)}/día` : '—'}
-                        </span>
-                      </div>
+                      {car.seats && <div>Plazas: <span className="font-semibold">{car.seats}</span></div>}
+                      <div>Temp. Baja: <span className="font-semibold">${car.lowSeasonPrice.toFixed(2)}/día</span></div>
+                      <div>Temp. Alta: <span className="font-semibold">${car.highSeasonPrice.toFixed(2)}/día</span></div>
                     </div>
                   )}
                 </div>
@@ -937,14 +803,7 @@ export default function BudgetGenerator({
 
         <button
           onClick={generateBudget}
-          disabled={
-            !formData.clientName ||
-            !formData.reservationNumber ||
-            !formData.startDate ||
-            !formData.endDate ||
-            selectedCars.size === 0 ||
-            isGenerating
-          }
+          disabled={!formData.clientName || !formData.reservationNumber || !formData.startDate || !formData.endDate || selectedCars.size === 0 || isGenerating}
           className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:transform-none flex items-center gap-3"
         >
           {isGenerating ? (
@@ -961,29 +820,25 @@ export default function BudgetGenerator({
         </button>
 
         {/* Botones adicionales */}
-        {formData.clientName &&
-          formData.reservationNumber &&
-          formData.startDate &&
-          formData.endDate &&
-          selectedCars.size > 0 && (
-            <div className="flex flex-wrap gap-4 mt-4">
-              <button
-                onClick={copyAsImage}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
-              >
-                <Copy className="h-4 w-4" />
-                Copiar como Imagen
-              </button>
+        {formData.clientName && formData.reservationNumber && formData.startDate && formData.endDate && selectedCars.size > 0 && (
+          <div className="flex flex-wrap gap-4 mt-4">
+            <button
+              onClick={copyAsImage}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
+            >
+              <Copy className="h-4 w-4" />
+              Copiar como Imagen
+            </button>
 
-              <button
-                onClick={shareWhatsApp}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
-              >
-                <MessageCircle className="h-4 w-4" />
-                Compartir por WhatsApp
-              </button>
-            </div>
-          )}
+            <button
+              onClick={shareWhatsApp}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Compartir por WhatsApp
+            </button>
+          </div>
+        )}
 
         {/* Mensaje de éxito */}
         {showSuccessMessage && (
@@ -1027,9 +882,7 @@ export default function BudgetGenerator({
                 </div>
                 <div className="flex items-center">
                   <span className="font-bold text-gray-700 w-24">Período:</span>
-                  <span className="text-gray-900">
-                    {formData.startDate} al {formData.endDate}
-                  </span>
+                  <span className="text-gray-900">{formData.startDate} al {formData.endDate}</span>
                 </div>
                 <div className="flex items-center">
                   <span className="font-bold text-gray-700 w-24">Días:</span>
@@ -1060,12 +913,8 @@ export default function BudgetGenerator({
                           <tr key={item.carId} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                             <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{item.carType || 'Auto'}</td>
                             <td className="border border-gray-300 px-4 py-3 text-gray-900">{vehicleName}</td>
-                            <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">
-                              ${item.pricePerDay.toFixed(2)}
-                            </td>
-                            <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">
-                              ${carTotal.toFixed(2)}
-                            </td>
+                            <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">${item.pricePerDay.toFixed(2)}</td>
+                            <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">${carTotal.toFixed(2)}</td>
                           </tr>
                         );
                       })}
@@ -1073,12 +922,8 @@ export default function BudgetGenerator({
                   {selectedCarsData.length === 1 && (
                     <tfoot>
                       <tr className="bg-gradient-to-r from-pink-100 to-orange-100">
-                        <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">
-                          TOTAL GENERAL:
-                        </td>
-                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">
-                          ${total.toFixed(2)}
-                        </td>
+                        <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">TOTAL GENERAL:</td>
+                        <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">${total.toFixed(2)}</td>
                       </tr>
                     </tfoot>
                   )}
@@ -1095,7 +940,7 @@ export default function BudgetGenerator({
                 <p>✓ Devolución en Aeropuerto MIA BONIFICADA</p>
                 <p>• Peaje libre (opcional) 5 dol x día</p>
                 <p>• Wifi libre (opcional) 5 dol x día</p>
-                <p>-Deposito en garantía con bloqueo de tarjeta de crédito. Se devuelve 7 días después si no hay multas. Contrato digital.</p>
+                <p>-Deposito en garantia se hace con bloqueo de tarjeta de credito, se devuelve 7 dias despues de recibir el auto si no hay multas o infracciones y el Contrato se firma digital</p>
               </div>
 
               <div className="border-t border-gray-300 pt-4 mb-4">
@@ -1104,14 +949,14 @@ export default function BudgetGenerator({
               </div>
 
               <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded">
-                <p className="font-bold text-orange-800">Si la entrega o recepción es fuera de horario de oficina se debe abonar</p>
-                <p className="font-bold text-orange-800">el ticket del parking del aeropuerto.</p>
+                <p className="font-bold text-orange-800">SI LA ENTREGA O RECEPCIÓN ES FUERA DE HORARIO DE OFICINA SE DEBE ABONAR</p>
+                <p className="font-bold text-orange-800">EL TICKET DEL PARKING DEL AEROPUERTO.</p>
               </div>
             </div>
 
             {/* Footer */}
             <div className="text-center mt-8 pt-4 border-t border-gray-200">
-              <p className="text-gray-600 text-sm">🌴 Phia Rental Miami - Creado por Damian Cupo 🌴</p>
+              <p className="text-gray-600 text-sm">🌴 Phia Rental Miami - Tu mejor opción en Miami 🌴</p>
             </div>
           </div>
         </div>
