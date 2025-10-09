@@ -35,6 +35,8 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     searchTerm: ''
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [customDays, setCustomDays] = useState<number | null>(null);
+  const [isManualDays, setIsManualDays] = useState(false);
 
   // Actualizar el último nombre de cliente cuando cambie
   useEffect(() => {
@@ -95,6 +97,28 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const getEffectiveDays = (): number => {
+    if (isManualDays && customDays !== null) {
+      return customDays;
+    }
+    if (formData.startDate && formData.endDate) {
+      return calculateDays(formData.startDate, formData.endDate);
+    }
+    return 0;
+  };
+
+  const handleDaysChange = (newDays: number) => {
+    if (newDays >= 1) {
+      setCustomDays(newDays);
+      setIsManualDays(true);
+    }
+  };
+
+  const resetToAutomaticDays = () => {
+    setIsManualDays(false);
+    setCustomDays(null);
   };
 
   const toggleCarSelection = (carId: string) => {
@@ -504,7 +528,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
     setTimeout(() => setShowSuccessMessage(null), 3000);
   };
 
-  const days = formData.startDate && formData.endDate ? calculateDays(formData.startDate, formData.endDate) : 0;
+  const days = getEffectiveDays();
   const season = formData.startDate && formData.endDate ? (isHighSeason(formData.startDate, formData.endDate) ? 'alta' : 'baja') : null;
   const selectedCarsData = Array.from(selectedCars.values());
   const total = selectedCarsData.reduce((sum, item) => sum + (item.pricePerDay * days), 0);
@@ -570,21 +594,53 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
         {/* Información del Período */}
         {days > 0 && (
           <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-4 mb-6 border border-pink-200">
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Calculator className="h-4 w-4 text-pink-600" />
-                <span className="font-semibold text-gray-700">Duración:</span>
-                <span className="text-pink-700 font-bold">{days} días</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Calculator className="h-4 w-4 text-pink-600" />
+                  <span className="font-semibold text-gray-700">Duración:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-700">Temporada:</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    season === 'alta' 
+                      ? 'bg-orange-100 text-orange-700' 
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {season === 'alta' ? 'ALTA' : 'BAJA'}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-700">Temporada:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                  season === 'alta' 
-                    ? 'bg-orange-100 text-orange-700' 
-                    : 'bg-emerald-100 text-emerald-700'
-                }`}>
-                  {season === 'alta' ? 'ALTA' : 'BAJA'}
-                </span>
+              
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={days}
+                    onChange={(e) => handleDaysChange(parseInt(e.target.value) || 1)}
+                    className="w-16 px-2 py-1 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none text-center font-bold text-pink-700"
+                  />
+                  <span className="text-sm font-semibold text-gray-700">días</span>
+                </div>
+                
+                {isManualDays && (
+                  <button
+                    onClick={resetToAutomaticDays}
+                    className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                    title="Volver al cálculo automático basado en fechas"
+                  >
+                    Usar Automático
+                  </button>
+                )}
+                
+                <div className="text-xs">
+                  {isManualDays ? (
+                    <span className="text-orange-600 font-semibold">✏️ Manual</span>
+                  ) : (
+                    <span className="text-green-600 font-semibold">🔄 Automático</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
