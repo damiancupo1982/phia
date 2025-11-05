@@ -157,7 +157,7 @@ export default function Gallery({ cars }: Props) {
     <div className="space-y-8">
       {/* Mensaje de éxito */}
       {showSuccessMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
           <CheckCircle className="h-4 w-4" />
           {showSuccessMessage}
         </div>
@@ -187,7 +187,7 @@ export default function Gallery({ cars }: Props) {
                   <div
                     key={car.id}
                     onClick={() => setSelectedCarId(car.id)}
-                    className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200 hover:border-indigo-400 cursor-pointer transition-all transform hover:scale-105 hover:shadow-lg"
+                    className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl p-6 border border-blue-200 hover:border-blue-400 cursor-pointer transition-all transform hover:scale-105 hover:shadow-lg"
                   >
                     <div className="flex items-center gap-3 mb-4">
                       <FolderOpen className="h-8 w-8 text-indigo-600" />
@@ -206,8 +206,8 @@ export default function Gallery({ cars }: Props) {
                       {itemCount > 0 && (
                         <div className="flex items-center gap-4 text-xs">
                           <div className="flex items-center gap-1">
-                            <ImageIcon className="h-3 w-3 text-green-600" />
-                            <span className="text-green-700">{imageCount}</span>
+                            <ImageIcon className="h-3 w-3 text-blue-500" />
+                            <span className="text-blue-600">{imageCount}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Video className="h-3 w-3 text-blue-600" />
@@ -250,7 +250,7 @@ export default function Gallery({ cars }: Props) {
                 <button
                   onClick={() => setShowShareModal(selectedCarId)}
                   disabled={selectedGallery.length === 0}
-                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:text-blue-900 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
                 >
                   <Share2 className="h-4 w-4" />
                   Compartir Galería
@@ -279,14 +279,14 @@ export default function Gallery({ cars }: Props) {
             {images.length > 0 && (
               <div className="mb-8">
                 <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5 text-green-600" />
+                  <ImageIcon className="h-5 w-5 text-blue-500" />
                   Imágenes ({images.length})
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {images.map(item => (
                     <div key={item.id} className="relative group">
                       <div 
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                        className="aspect-square bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden cursor-pointer"
                         onClick={() => setShowPreview({ type: 'image', url: item.url })}
                       >
                         <img
@@ -318,7 +318,7 @@ export default function Gallery({ cars }: Props) {
                   {videos.map(item => (
                     <div key={item.id} className="relative group">
                       <div 
-                        className="aspect-video bg-gray-100 rounded-lg overflow-hidden cursor-pointer relative"
+                        className="aspect-video bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden cursor-pointer relative"
                         onClick={() => setShowPreview({ type: 'video', url: item.url })}
                       >
                         <video
@@ -385,7 +385,7 @@ export default function Gallery({ cars }: Props) {
                 </p>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-xs text-gray-600 font-mono break-all">
                   {generateShareLink(showShareModal)}
                 </p>
@@ -407,7 +407,7 @@ export default function Gallery({ cars }: Props) {
                     const message = `🚗 *Galería de ${car?.name}* 🌴\n\nMira las fotos y videos de este vehículo:\n${link}\n\n📱 Phia Rental Miami`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
                   }}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
                 >
                   <Share2 className="h-4 w-4" />
                   WhatsApp
@@ -448,12 +448,12 @@ export default function Gallery({ cars }: Props) {
       )}
 
       {/* Información de almacenamiento */}
-      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200">
+      <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-4 border border-blue-200">
         <div className="flex items-center gap-2 mb-2">
-          <AlertCircle className="h-4 w-4 text-yellow-600" />
-          <span className="text-sm font-semibold text-yellow-800">Información de Almacenamiento</span>
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <span className="text-sm font-semibold text-blue-800">Información de Almacenamiento</span>
         </div>
-        <div className="text-xs text-yellow-700 space-y-1">
+        <div className="text-xs text-blue-700 space-y-1">
           <p>• Máximo 20 archivos por vehículo</p>
           <p>• Tamaño máximo por archivo: 10MB</p>
           <p>• Formatos soportados: JPG, PNG, WEBP, MP4, WEBM, MOV</p>

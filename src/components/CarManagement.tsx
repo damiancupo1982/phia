@@ -89,7 +89,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
       {/* Logo de la Empresa */}
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <div className="flex items-center gap-3 mb-6">
-          <Upload className="h-6 w-6 text-orange-600" />
+          <Upload className="h-6 w-6 text-blue-500" />
           <h2 className="text-2xl font-bold text-gray-800">Logo de la Empresa</h2>
         </div>
         <div className="flex items-center gap-4">
@@ -102,7 +102,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2"
           >
             <Upload className="h-5 w-5" />
             {companyLogo ? 'Cambiar Logo' : 'Subir Logo'}
@@ -114,7 +114,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 alt="Logo de la empresa" 
                 className="h-12 w-auto object-contain border border-gray-200 rounded"
               />
-              <span className="text-green-600 font-semibold">✓ Logo guardado</span>
+              <span className="text-blue-600 font-semibold">✓ Logo guardado</span>
             </div>
           )}
         </div>
@@ -155,7 +155,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
       {/* Formulario para Agregar Autos */}
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <div className="flex items-center gap-3 mb-6">
-          <Plus className="h-6 w-6 text-emerald-600" />
+          <Plus className="h-6 w-6 text-blue-600" />
           <h2 className="text-2xl font-bold text-gray-800">Agregar Nuevo Auto</h2>
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -168,7 +168,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="Ej: Toyota Camry 2024"
                 required
               />
@@ -181,7 +181,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 type="text"
                 value={formData.type}
                 onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="Ej: SUV, Sedan"
               />
             </div>
@@ -193,7 +193,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 type="text"
                 value={formData.fuel}
                 onChange={(e) => setFormData(prev => ({ ...prev, fuel: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="Ej: Gasolina, Híbrido"
               />
             </div>
@@ -206,7 +206,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 step="0.01"
                 value={formData.deposit}
                 onChange={(e) => setFormData(prev => ({ ...prev, deposit: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="0.00"
               />
             </div>
@@ -221,7 +221,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 step="0.01"
                 value={formData.lowSeasonPrice}
                 onChange={(e) => setFormData(prev => ({ ...prev, lowSeasonPrice: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="0.00"
                 required
               />
@@ -235,7 +235,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 step="0.01"
                 value={formData.highSeasonPrice}
                 onChange={(e) => setFormData(prev => ({ ...prev, highSeasonPrice: e.target.value }))}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="0.00"
                 required
               />
@@ -243,7 +243,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
           </div>
           <button
             type="submit"
-            className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
+            className="bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
           >
             <Plus className="h-5 w-5" />
             Agregar Auto
@@ -252,13 +252,13 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
       </div>
 
       {/* Tabla de Autos */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden">
+        <div className="px-6 py-4 bg-gradient-to-r from-blue-50 via-white to-blue-100 border-b border-blue-200">
           <h2 className="text-2xl font-bold text-gray-800">Inventario de Autos</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-blue-50">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Auto</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Tipo</th>
@@ -269,9 +269,9 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-blue-100">
               {cars.map((car) => (
-                <tr key={car.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={car.id} className="hover:bg-blue-50 transition-colors">
                   <td className="px-6 py-4">
                     {editingId === car.id ? (
                       <input
@@ -355,14 +355,14 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                         <>
                           <button
                             onClick={saveEdit}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-lg transition-colors"
+                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors"
                             title="Guardar"
                           >
                             <Save className="h-4 w-4" />
                           </button>
                           <button
                             onClick={cancelEdit}
-                            className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition-colors"
+                            className="bg-blue-100 hover:bg-blue-200 text-blue-800 p-2 rounded-lg transition-colors border border-blue-200"
                             title="Cancelar"
                           >
                             <X className="h-4 w-4" />
@@ -372,7 +372,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                         <>
                           <button
                             onClick={() => startEdit(car)}
-                            className="bg-sky-500 hover:bg-sky-600 text-white p-2 rounded-lg transition-colors"
+                            className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors"
                             title="Editar"
                           >
                             <Edit2 className="h-4 w-4" />
