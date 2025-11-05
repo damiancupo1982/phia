@@ -331,7 +331,7 @@ export default function FileImporter({ cars, setCars }: Props) {
             <div className="flex justify-end mt-6">
               <button
                 onClick={closeResult}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold transition-all shadow-sm"
               >
                 Cerrar
               </button>

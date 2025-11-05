@@ -250,7 +250,7 @@ export default function Gallery({ cars }: Props) {
                 <button
                   onClick={() => setShowShareModal(selectedCarId)}
                   disabled={selectedGallery.length === 0}
-                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+                  className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 disabled:text-blue-900 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
                 >
                   <Share2 className="h-4 w-4" />
                   Compartir Galería
@@ -286,7 +286,7 @@ export default function Gallery({ cars }: Props) {
                   {images.map(item => (
                     <div key={item.id} className="relative group">
                       <div 
-                        className="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer"
+                        className="aspect-square bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden cursor-pointer"
                         onClick={() => setShowPreview({ type: 'image', url: item.url })}
                       >
                         <img
@@ -318,7 +318,7 @@ export default function Gallery({ cars }: Props) {
                   {videos.map(item => (
                     <div key={item.id} className="relative group">
                       <div 
-                        className="aspect-video bg-gray-100 rounded-lg overflow-hidden cursor-pointer relative"
+                        className="aspect-video bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg overflow-hidden cursor-pointer relative"
                         onClick={() => setShowPreview({ type: 'video', url: item.url })}
                       >
                         <video
@@ -385,7 +385,7 @@ export default function Gallery({ cars }: Props) {
                 </p>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-xs text-gray-600 font-mono break-all">
                   {generateShareLink(showShareModal)}
                 </p>

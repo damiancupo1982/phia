@@ -752,7 +752,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                 </div>
                 <button
                   onClick={clearFilters}
-                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+                  className="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2 shadow-sm"
                 >
                   <X className="h-4 w-4" />
                   Limpiar Filtros

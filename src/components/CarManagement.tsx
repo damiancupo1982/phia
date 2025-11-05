@@ -252,13 +252,13 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
       </div>
 
       {/* Tabla de Autos */}
-      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-lg border border-blue-100 overflow-hidden">
+        <div className="px-6 py-4 bg-gradient-to-r from-blue-50 via-white to-blue-100 border-b border-blue-200">
           <h2 className="text-2xl font-bold text-gray-800">Inventario de Autos</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-blue-50">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Auto</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Tipo</th>
@@ -269,9 +269,9 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                 <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-blue-100">
               {cars.map((car) => (
-                <tr key={car.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={car.id} className="hover:bg-blue-50 transition-colors">
                   <td className="px-6 py-4">
                     {editingId === car.id ? (
                       <input
@@ -362,7 +362,7 @@ export default function CarManagement({ cars, setCars, seasonSettings, setSeason
                           </button>
                           <button
                             onClick={cancelEdit}
-                            className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition-colors"
+                            className="bg-blue-100 hover:bg-blue-200 text-blue-800 p-2 rounded-lg transition-colors border border-blue-200"
                             title="Cancelar"
                           >
                             <X className="h-4 w-4" />
