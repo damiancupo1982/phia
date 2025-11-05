@@ -279,7 +279,7 @@ export default function FileImporter({ cars, setCars }: Props) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 {importResult.success ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
+                  <CheckCircle className="h-6 w-6 text-blue-600" />
                 ) : (
                   <AlertCircle className="h-6 w-6 text-red-600" />
                 )}
@@ -299,13 +299,13 @@ export default function FileImporter({ cars, setCars }: Props) {
               <p className="text-gray-700">{importResult.message}</p>
               
               {importResult.success && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <div className="text-sm space-y-1">
-                    <p className="text-green-800">
+                    <p className="text-blue-800">
                       <strong>Autos importados:</strong> {importResult.importedCount}
                     </p>
                     {importResult.duplicatesCount > 0 && (
-                      <p className="text-orange-700">
+                      <p className="text-blue-600">
                         <strong>Duplicados omitidos:</strong> {importResult.duplicatesCount}
                       </p>
                     )}
@@ -314,9 +314,9 @@ export default function FileImporter({ cars, setCars }: Props) {
               )}
 
               {importResult.errors.length > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-sm font-semibold text-yellow-800 mb-2">Advertencias:</p>
-                  <ul className="text-sm text-yellow-700 space-y-1">
+                <div className="bg-sky-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm font-semibold text-blue-800 mb-2">Advertencias:</p>
+                  <ul className="text-sm text-blue-700 space-y-1">
                     {importResult.errors.slice(0, 5).map((error, index) => (
                       <li key={index}>• {error}</li>
                     ))}

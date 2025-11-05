@@ -90,16 +90,16 @@ function App() {
   }, [reservationCounter]);
 
   const tabs = [
-    { id: 'budget' as const, name: 'Generar Presupuesto', icon: FileText, color: 'text-pink-600' },
-    { id: 'cars' as const, name: 'Gestión de Autos', icon: CarIcon, color: 'text-emerald-600' },
-    { id: 'history' as const, name: 'Historial', icon: History, color: 'text-purple-600' },
-    { id: 'gallery' as const, name: 'Galería', icon: Images, color: 'text-indigo-600' }
+    { id: 'budget' as const, name: 'Generar Presupuesto', icon: FileText, color: 'text-blue-600' },
+    { id: 'cars' as const, name: 'Gestión de Autos', icon: CarIcon, color: 'text-sky-600' },
+    { id: 'history' as const, name: 'Historial', icon: History, color: 'text-indigo-600' },
+    { id: 'gallery' as const, name: 'Galería', icon: Images, color: 'text-cyan-600' }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-pink-500 via-coral-500 to-orange-400 shadow-lg">
+      <header className="bg-gradient-to-r from-blue-700 via-sky-600 to-blue-500 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ function App() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">Phia Rental Miami</h1>
-                <p className="text-pink-100 text-sm">Sistema de Gestión y Presupuestos</p>
+                <p className="text-blue-100 text-sm">Sistema de Gestión y Presupuestos</p>
               </div>
             </div>
             <div className="hidden md:flex items-center text-white/80 text-sm">
@@ -131,7 +131,7 @@ function App() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 flex items-center gap-2 ${
                     activeTab === tab.id
-                      ? `border-pink-500 ${tab.color}`
+                      ? `border-blue-500 ${tab.color}`
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >

@@ -536,9 +536,9 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
   return (
     <div className="space-y-8">
       {/* Formulario de Presupuesto */}
-      <div className="bg-white rounded-xl shadow-lg p-6 border border-pink-100">
+      <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-100">
         <div className="flex items-center gap-3 mb-6">
-          <FileText className="h-6 w-6 text-pink-600" />
+          <FileText className="h-6 w-6 text-blue-600" />
           <h2 className="text-2xl font-bold text-gray-800">Generar Presupuesto</h2>
         </div>
         
@@ -551,7 +551,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               type="text"
               value={formData.clientName}
               onChange={(e) => setFormData(prev => ({ ...prev, clientName: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
               placeholder="Ej: Juan Pérez"
             />
           </div>
@@ -575,7 +575,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               type="date"
               value={formData.startDate}
               onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
             />
           </div>
           <div>
@@ -586,26 +586,26 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               type="date"
               value={formData.endDate}
               onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
             />
           </div>
         </div>
 
         {/* Información del Período */}
         {days > 0 && (
-          <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-4 mb-6 border border-pink-200">
+          <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <Calculator className="h-4 w-4 text-pink-600" />
+                  <Calculator className="h-4 w-4 text-blue-600" />
                   <span className="font-semibold text-gray-700">Duración:</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-700">Temporada:</span>
                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${
                     season === 'alta' 
-                      ? 'bg-orange-100 text-orange-700' 
-                      : 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-blue-50 text-blue-700'
                   }`}>
                     {season === 'alta' ? 'ALTA' : 'BAJA'}
                   </span>
@@ -619,7 +619,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                     min="1"
                     value={days}
                     onChange={(e) => handleDaysChange(parseInt(e.target.value) || 1)}
-                    className="w-16 px-2 py-1 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none text-center font-bold text-pink-700"
+                    className="w-16 px-2 py-1 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-center font-bold text-blue-700"
                   />
                   <span className="text-sm font-semibold text-gray-700">días</span>
                 </div>
@@ -627,7 +627,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                 {isManualDays && (
                   <button
                     onClick={resetToAutomaticDays}
-                    className="bg-pink-500 hover:bg-pink-600 text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-xs font-semibold transition-all"
                     title="Volver al cálculo automático basado en fechas"
                   >
                     Usar Automático
@@ -636,9 +636,9 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                 
                 <div className="text-xs">
                   {isManualDays ? (
-                    <span className="text-orange-600 font-semibold">✏️ Manual</span>
+                    <span className="text-blue-600 font-semibold">✏️ Manual</span>
                   ) : (
-                    <span className="text-green-600 font-semibold">🔄 Automático</span>
+                    <span className="text-blue-600 font-semibold">🔄 Automático</span>
                   )}
                 </div>
               </div>
@@ -652,7 +652,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             <h3 className="text-lg font-semibold text-gray-800">Seleccionar Autos del Inventario</h3>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-all flex items-center gap-2"
             >
               <Filter className="h-4 w-4" />
               {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
@@ -660,7 +660,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
           </div>
 
           {showFilters && (
-            <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-6 mb-6 border border-pink-200">
+            <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-6 mb-6 border border-blue-200">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
                 {/* Búsqueda por nombre */}
                 <div>
@@ -673,7 +673,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                       type="text"
                       value={filters.searchTerm}
                       onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                       placeholder="Ej: Toyota, BMW..."
                     />
                   </div>
@@ -687,7 +687,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                   <select
                     value={filters.type}
                     onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">Todos los tipos</option>
                     {uniqueTypes.map(type => (
@@ -704,7 +704,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                   <select
                     value={filters.fuel}
                     onChange={(e) => setFilters(prev => ({ ...prev, fuel: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">Todos</option>
                     {uniqueFuels.map(fuel => (
@@ -721,7 +721,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                   <select
                     value={filters.seats}
                     onChange={(e) => setFilters(prev => ({ ...prev, seats: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
                     <option value="">Todas</option>
                     {uniqueSeats.map(seats => (
@@ -741,7 +741,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                     max="300"
                     value={filters.priceRange[1]}
                     onChange={(e) => setFilters(prev => ({ ...prev, priceRange: [0, parseInt(e.target.value)] }))}
-                    className="w-full h-2 bg-pink-200 rounded-lg appearance-none cursor-pointer slider-thumb"
+                    className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider-thumb"
                   />
                 </div>
               </div>
@@ -774,7 +774,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                   key={car.id}
                   className={`p-6 rounded-lg border-2 transition-all ${
                     isSelected
-                      ? 'border-pink-500 bg-pink-50 shadow-md'
+                      ? 'border-blue-500 bg-blue-50 shadow-md'
                       : 'border-gray-200 bg-white'
                   }`}
                 >
@@ -784,7 +784,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleCarSelection(car.id)}
-                        className="h-5 w-5 text-pink-600 focus:ring-pink-500 border-gray-300 rounded"
+                        className="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <div>
                         <h4 className="font-bold text-gray-900">{car.name}</h4>
@@ -806,7 +806,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                           <select
                             value={selectedItem.season}
                             onChange={(e) => updateCarSeason(car.id, e.target.value as 'alta' | 'baja')}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                           >
                             <option value="baja">Baja</option>
                             <option value="alta">Alta</option>
@@ -822,7 +822,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                             step="0.01"
                             value={selectedItem.pricePerDay}
                             onChange={(e) => updateCarPrice(car.id, parseFloat(e.target.value) || 0)}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none"
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                           />
                         </div>
                         
@@ -831,7 +831,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                             Total ({days} días)
                           </label>
                           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                            <span className="font-bold text-pink-700">
+                            <span className="font-bold text-blue-700">
                               ${(selectedItem.pricePerDay * days).toFixed(2)}
                             </span>
                           </div>
@@ -839,7 +839,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                       </div>
                       
                       {selectedItem.manuallyEdited && (
-                        <div className="text-xs text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
+                        <div className="text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                           ⚠️ Precio editado manualmente
                         </div>
                       )}
@@ -868,7 +868,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
 
         {/* Resumen y Total */}
         {selectedCars.size > 0 && days > 0 && (
-          <div className="bg-gradient-to-r from-pink-50 to-orange-50 rounded-lg p-6 mb-6 border border-pink-200">
+          <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-6 mb-6 border border-blue-200">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Resumen del Presupuesto</h3>
             <div className="space-y-3">
               {selectedCarsData.map((item) => {
@@ -885,7 +885,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               <hr className="border-gray-300" />
               <div className="flex justify-between items-center text-lg font-bold">
                 <span className="text-gray-800">Total General:</span>
-                <span className="text-pink-700">${total.toFixed(2)}</span>
+                <span className="text-blue-700">${total.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -894,7 +894,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
         <button
           onClick={generateBudget}
           disabled={!formData.clientName || !formData.reservationNumber || !formData.startDate || !formData.endDate || selectedCars.size === 0 || isGenerating}
-          className="bg-gradient-to-r from-pink-500 to-orange-500 hover:from-pink-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:transform-none flex items-center gap-3"
+          className="bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105 disabled:transform-none flex items-center gap-3"
         >
           {isGenerating ? (
             <>
@@ -914,7 +914,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
           <div className="flex flex-wrap gap-4 mt-4">
             <button
               onClick={copyAsImage}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
+              className="bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
             >
               <Copy className="h-4 w-4" />
               Copiar como Imagen
@@ -922,7 +922,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             
             <button
               onClick={shareWhatsApp}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
+              className="bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 text-white px-6 py-3 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2"
             >
               <MessageCircle className="h-4 w-4" />
               Compartir WhatsApp
@@ -933,7 +933,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
 
       {/* Mensaje de éxito */}
       {showSuccessMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
           {showSuccessMessage}
         </div>
@@ -954,7 +954,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                 <img src={companyLogo} alt="Phia Rental Miami" className="max-h-16 mx-auto object-contain" />
               </div>
             )}
-            <div className="bg-gradient-to-r from-pink-500 to-orange-500 text-white p-4 rounded-lg mb-6">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white p-4 rounded-lg mb-6">
               <h1 className="text-2xl font-bold mb-1">PHIA RENTAL MIAMI</h1>
               <h2 className="text-lg font-semibold">PRESUPUESTO DE RENTA DE AUTOS</h2>
               <p className="text-sm mt-2">Reserva: {formData.reservationNumber}</p>
@@ -974,7 +974,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
               </div>
               <div className="flex items-center">
                 <span className="font-bold text-gray-700 w-24">Días:</span>
-                <span className="text-gray-900 font-bold text-pink-600">{days} días</span>
+                <span className="text-gray-900 font-bold text-blue-600">{days} días</span>
               </div>
             </div>
           </div>
@@ -984,7 +984,7 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             <div className="mb-8">
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-pink-500 to-orange-500 text-white">
+                <tr className="bg-gradient-to-r from-blue-600 to-indigo-500 text-white">
                   <th className="border border-gray-300 px-4 py-3 text-left font-bold">Tipo</th>
                   <th className="border border-gray-300 px-4 py-3 text-left font-bold">Vehículo</th>
                   <th className="border border-gray-300 px-4 py-3 text-right font-bold">Precio/Día</th>
@@ -1001,17 +1001,17 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
                     <tr key={item.carId} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                       <td className="border border-gray-300 px-4 py-3 font-semibold text-gray-700">{item.carType || 'Auto'}</td>
                       <td className="border border-gray-300 px-4 py-3 text-gray-900">{vehicleName}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-pink-600">${item.pricePerDay.toFixed(2)}</td>
-                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-orange-600">${carTotal.toFixed(2)}</td>
+                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-blue-600">${item.pricePerDay.toFixed(2)}</td>
+                      <td className="border border-gray-300 px-4 py-3 text-right font-bold text-blue-600">${carTotal.toFixed(2)}</td>
                     </tr>
                   );
                 })}
               </tbody>
               {selectedCarsData.length === 1 && (
                 <tfoot>
-                  <tr className="bg-gradient-to-r from-pink-100 to-orange-100">
+                  <tr className="bg-gradient-to-r from-blue-100 to-sky-100">
                     <td colSpan={3} className="border border-gray-300 px-4 py-3 text-right font-bold text-gray-800">TOTAL GENERAL:</td>
-                    <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-pink-600">${total.toFixed(2)}</td>
+                    <td className="border border-gray-300 px-4 py-3 text-right font-bold text-2xl text-blue-600">${total.toFixed(2)}</td>
                   </tr>
                 </tfoot>
               )}
@@ -1031,13 +1031,13 @@ export default function BudgetGenerator({ cars, seasonSettings, budgets, setBudg
             </div>
             
             <div className="border-t border-gray-300 pt-4 mb-4">
-              <p className="font-bold text-lg text-pink-600">PRECIO FINAL</p>
+              <p className="font-bold text-lg text-blue-600">PRECIO FINAL</p>
               <p className="text-gray-700">(incluye seguro obligatorio y taxes)</p>
             </div>
             
-            <div className="bg-orange-100 border-l-4 border-orange-500 p-3 rounded">
-              <p className="font-bold text-orange-800">SI LA ENTREGA O RECEPCIÓN ES FUERA DE HORARIO DE OFICINA SE DEBE ABONAR</p>
-              <p className="font-bold text-orange-800">EL TICKET DEL PARKING DEL AEROPUERTO.</p>
+            <div className="bg-blue-100 border-l-4 border-blue-500 p-3 rounded">
+              <p className="font-bold text-blue-800">SI LA ENTREGA O RECEPCIÓN ES FUERA DE HORARIO DE OFICINA SE DEBE ABONAR</p>
+              <p className="font-bold text-blue-800">EL TICKET DEL PARKING DEL AEROPUERTO.</p>
             </div>
           </div>
 

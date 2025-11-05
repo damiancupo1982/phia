@@ -114,7 +114,7 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
     <div className="space-y-8">
       {/* Mensaje de éxito */}
       {showSuccessMessage && (
-        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
+        <div className="fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2">
           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
           {showSuccessMessage}
         </div>
@@ -122,7 +122,7 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
 
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <div className="flex items-center gap-3 mb-6">
-          <History className="h-6 w-6 text-purple-600" />
+          <History className="h-6 w-6 text-blue-600" />
           <h2 className="text-2xl font-bold text-gray-800">Historial de Presupuestos</h2>
         </div>
 
@@ -190,7 +190,7 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <span className="text-lg font-bold text-emerald-700">
+                      <span className="text-lg font-bold text-blue-700">
                         ${budget.total.toFixed(2)}
                       </span>
                     </td>
@@ -209,7 +209,7 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
                         
                         <button
                           onClick={() => duplicateBudget(budget)}
-                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 text-xs"
+                          className="bg-sky-600 hover:bg-sky-700 text-white px-3 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 text-xs"
                           title="Duplicar presupuesto"
                         >
                           <RefreshCw className="h-3 w-3" />
@@ -217,7 +217,7 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
                         </button>
                         <button
                           onClick={() => downloadBudgetPDF(budget)}
-                          className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 text-xs"
+                          className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 text-xs"
                           title="Descargar PDF"
                         >
                           <Download className="h-3 w-3" />
@@ -237,7 +237,7 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
                             
                             <button
                               onClick={() => shareWhatsAppFromHistory(budget)}
-                              className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 text-xs"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold transition-all flex items-center gap-1 text-xs"
                               title="Compartir por WhatsApp"
                             >
                               <MessageCircle className="h-3 w-3" />
@@ -258,13 +258,13 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
       {/* Estadísticas */}
       {sortedBudgets.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl p-6 text-white">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-emerald-100 text-sm font-medium">Total Presupuestos</p>
+                <p className="text-blue-100 text-sm font-medium">Total Presupuestos</p>
                 <p className="text-3xl font-bold">{sortedBudgets.length}</p>
               </div>
-              <FileText className="h-12 w-12 text-emerald-200" />
+              <FileText className="h-12 w-12 text-blue-200" />
             </div>
           </div>
           
@@ -280,10 +280,10 @@ export default function BudgetHistory({ budgets, setBudgets, companyLogo, onDupl
             </div>
           </div>
           
-          <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+          <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl p-6 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm font-medium">Promedio</p>
+                <p className="text-indigo-100 text-sm font-medium">Promedio</p>
                 <p className="text-3xl font-bold">
                   ${(sortedBudgets.reduce((sum, budget) => sum + budget.total, 0) / sortedBudgets.length).toFixed(0)}
                 </p>
